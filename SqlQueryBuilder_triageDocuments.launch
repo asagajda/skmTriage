@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<launchConfiguration type="org.eclipse.jdt.launching.localJavaApplication">
+<listAttribute key="org.eclipse.debug.core.MAPPED_RESOURCE_PATHS">
+<listEntry value="/vpdmfDao/src/main/java/edu/isi/bmkeg/vpdmf/bin/SqlQueryBuilder.java"/>
+</listAttribute>
+<listAttribute key="org.eclipse.debug.core.MAPPED_RESOURCE_TYPES">
+<listEntry value="1"/>
+</listAttribute>
+<stringAttribute key="org.eclipse.jdt.launching.CLASSPATH_PROVIDER" value="org.eclipse.m2e.launchconfig.classpathProvider"/>
+<stringAttribute key="org.eclipse.jdt.launching.MAIN_TYPE" value="edu.isi.bmkeg.vpdmf.bin.SqlQueryBuilder"/>
+<stringAttribute key="org.eclipse.jdt.launching.PROGRAM_ARGUMENTS" value="${resource_loc:/skmTriage/target/vpdmf/edu/isi/bmkeg/skm/triage/triage_VPDMf.zip}&#10;TriagedArticle&#10;]LiteratureCitation|ArticleCitation.pmid&amp;]TriagedDocument|TriagedDocument.inOutCode&#10;]TriageCorpus|TriageCorpus.name=mycorpusName"/>
+<stringAttribute key="org.eclipse.jdt.launching.PROJECT_ATTR" value="skmTriage"/>
+<stringAttribute key="org.eclipse.jdt.launching.SOURCE_PATH_PROVIDER" value="org.eclipse.m2e.launchconfig.sourcepathProvider"/>
+</launchConfiguration>
