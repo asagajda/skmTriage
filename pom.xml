@@ -4,13 +4,13 @@
 	<parent>
 		<artifactId>bmkeg-parent</artifactId>
 		<groupId>edu.isi.bmkeg</groupId>
-		<version>0.1.0-SNAPSHOT</version>
+		<version>1.1.3-SNAPSHOT</version>
 		<relativePath>../bmkeg-parent</relativePath>
 	</parent>
 
 	<groupId>edu.isi.bmkeg</groupId>
 	<artifactId>skmTriage</artifactId>
-	<version>0.1.4-SNAPSHOT</version>
+	<version>1.1.3-SNAPSHOT</version>
 	<name>SciKnowMine Triage Workflow Execution</name>
 
 	<build>
@@ -71,8 +71,9 @@
 									<groupId>edu.isi.bmkeg</groupId>
 									<artifactId>triage</artifactId>
 									<type>zip</type>
+									<classifier>mysql</classifier>
 									<outputDirectory>${project.build.directory}/vpdmf/edu/isi/bmkeg/skm/triage</outputDirectory>
-									<destFileName>triage_VPDMf.zip</destFileName>
+									<destFileName>triage-mysql.zip</destFileName>
 								</artifactItem>
 							</artifactItems>
 						</configuration>
@@ -121,29 +122,23 @@
 		<dependency>
 			<groupId>edu.isi.bmkeg</groupId>
 			<artifactId>triage</artifactId>
-			<version>0.1.4-SNAPSHOT</version>
 			<type>zip</type>
-		<!-- <scope>test</scope> -->
+			<classifier>mysql</classifier>
 		</dependency>
 
 		<dependency>
 			<groupId>edu.isi.bmkeg</groupId>
 			<artifactId>triage-jpa</artifactId>
-			<version>0.1.4-SNAPSHOT</version>
 		</dependency>
 
 		<dependency>
 			<groupId>edu.isi.bmkeg</groupId>
 			<artifactId>triage-services</artifactId>
-			<version>0.1.4-SNAPSHOT</version>
 		</dependency>
 
 		<dependency>
 			<groupId>edu.isi.bmkeg</groupId>
-			<artifactId>vpdmf</artifactId>
- 			<version>1.1.2-SNAPSHOT</version>
-			<type>jar</type>
-			<scope>compile</scope>
+			<artifactId>vpdmfCore</artifactId>
 		</dependency>
 
 		<!-- 
@@ -168,87 +163,28 @@
 			<artifactId>cleartk-eval</artifactId>
 		</dependency>
 
-		
-<!-- 
-		<dependency>
-			<groupId>org.uimafit</groupId>
-			<artifactId>uimafit</artifactId>
-			<version>1.4.0</version>
-		</dependency>
-
-		<dependency>
-			<groupId>org.cleartk</groupId>
-			<artifactId>cleartk-syntax</artifactId>
-			<version>0.6.2</version>
-		</dependency>
-
-		<dependency>
-			<groupId>org.cleartk</groupId>
-			<artifactId>cleartk-ml-opennlp-maxent</artifactId>
-			<version>1.1.0</version>
-		</dependency>
- -->
-
 		<dependency>
 			<groupId>edu.isi.bmkeg</groupId>
 			<artifactId>skmCore</artifactId>
-			<version>0.0.2-SNAPSHOT</version>
-			<type>jar</type>
-			<scope>compile</scope>
 		</dependency>
 
 		<dependency>
 			<groupId>org.springframework</groupId>
 			<artifactId>spring-core</artifactId>
-			<version>${spring.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>org.springframework</groupId>
 			<artifactId>spring-context</artifactId>
-			<version>${spring.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>org.springframework</groupId>
 			<artifactId>spring-beans</artifactId>
-			<version>${spring.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>org.springframework</groupId>
 			<artifactId>spring-test</artifactId>
-			<version>${spring.version}</version>
-			<type>jar</type>
 			<scope>test</scope>
 		</dependency>
-<!--
-		<dependency>
-			<groupId>org.jpedal</groupId>
-			<artifactId>jpedal</artifactId>
-			<version>lgpl</version>
-			<type>jar</type>
-			<scope>compile</scope>
-		</dependency>
-		<dependency>
-			<groupId>com.infomatiq</groupId>
-			<artifactId>jsi</artifactId>
-			<version>1.0b6</version>
-			<type>jar</type>
-			<scope>compile</scope>
-		</dependency>
-		<dependency>
-			<groupId>edu.isi.bmkeg</groupId>
-			<artifactId>uml</artifactId>
- 			<version>0.1.2-SNAPSHOT</version>
-			<type>jar</type>
-			<scope>compile</scope>
-		</dependency>
-		<dependency>
-			<groupId>edu.isi.bmkeg</groupId>
-			<artifactId>utils</artifactId>
- 			<version>0.1.2-SNAPSHOT</version>
-			<type>jar</type>
-			<scope>compile</scope>
-		</dependency>
-	-->
 	</dependencies>
 
 </project>
