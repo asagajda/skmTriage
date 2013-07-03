@@ -15,6 +15,8 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import edu.isi.bmkeg.skm.triage.controller.TriageEngine;
 import edu.isi.bmkeg.triage.model.TriageCorpus;
 import edu.isi.bmkeg.triage.model.TriageScore;
+import edu.isi.bmkeg.triage.model.qo.TriageCorpus_qo;
+import edu.isi.bmkeg.triage.model.qo.TriageScore_qo;
 import edu.isi.bmkeg.utils.springContext.AppContext;
 import edu.isi.bmkeg.utils.springContext.BmkegProperties;
 import edu.isi.bmkeg.vpdmf.controller.VPDMfKnowledgeBaseBuilder;
@@ -83,11 +85,11 @@ ApplicationContext ctx;
 		
 	}
 	
-	@Test @Ignore("Fails")
+	@Test // @Ignore("Fails")
 	public final void testDaoQueryList() throws Exception {
 
-		TriageScore td = new TriageScore();
-		TriageCorpus tc = new TriageCorpus();
+		TriageScore_qo td = new TriageScore_qo();
+		TriageCorpus_qo tc = new TriageCorpus_qo();
 		td.setTriageCorpus(tc);
 		tc.setName("mgiBase");
 	
@@ -98,7 +100,7 @@ ApplicationContext ctx;
 		
 	}
 		
-	@Test @Ignore("Fails")
+	@Test // @Ignore("Fails")
 	public final void testDaoQueryRetrieve() throws Exception {
 
 		TriageScore td = new TriageScore();
@@ -113,7 +115,7 @@ ApplicationContext ctx;
 		
 	}
 	
-	@Test @Ignore("Fails")
+	@Test // @Ignore("Fails")
 	public final void testDaoQueryFindById() throws Exception {
 
 		TriageScore td = new TriageScore();
@@ -125,7 +127,7 @@ ApplicationContext ctx;
 		
 	}
 	
-	@Test @Ignore("Fails")
+	@Test // @Ignore("Fails")
 	public final void testDaoQueryUpdate() throws Exception {
 
 		TriageScore td = new TriageScore();
@@ -141,11 +143,11 @@ ApplicationContext ctx;
 		
 	} 
 	
-	@Test @Ignore("Fails")
+	@Test // @Ignore("Fails")
 	public final void testDaoQueryCount() throws Exception {
 
-		TriageScore td = new TriageScore();
-		TriageCorpus tc = new TriageCorpus();
+		TriageScore_qo td = new TriageScore_qo();
+		TriageCorpus_qo tc = new TriageCorpus_qo();
 		tc.setName("arg");
 		td.setTriageCorpus(tc);
 	

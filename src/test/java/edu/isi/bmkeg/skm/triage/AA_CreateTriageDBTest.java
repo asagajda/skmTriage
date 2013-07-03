@@ -51,7 +51,7 @@ public class AA_CreateTriageDBTest {
 			dbUrl = dbUrl.substring(l + 1, dbUrl.length());
 	
 		archiveFile = ctx.getResource(
-				"classpath:edu/isi/bmkeg/skm/triage/triage_VPDMf.zip").getFile();
+				"classpath:edu/isi/bmkeg/skm/triage/triage-mysql.zip").getFile();
 
 		builder = new VPDMfKnowledgeBaseBuilder(archiveFile, 
 				login, password, dbUrl); 

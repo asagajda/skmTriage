@@ -10,6 +10,7 @@ import org.kohsuke.args4j.Option;
 
 import edu.isi.bmkeg.skm.triage.controller.TriageEngine;
 import edu.isi.bmkeg.triage.model.TriageCorpus;
+import edu.isi.bmkeg.triage.model.qo.TriageCorpus_qo;
 import edu.isi.bmkeg.vpdmf.model.instances.LightViewInstance;
 
 public class EditTriageCorpus {
@@ -70,7 +71,7 @@ public class EditTriageCorpus {
 		te = new TriageEngine();
 		te.initializeVpdmfDao(options.login, options.password, options.dbName);
 
-		TriageCorpus qc = new TriageCorpus();
+		TriageCorpus_qo qc = new TriageCorpus_qo();
 		qc.setName(options.name);
 		List<LightViewInstance> lviList = te.getTriageDao().listArticleTriageCorpus(qc);
 		

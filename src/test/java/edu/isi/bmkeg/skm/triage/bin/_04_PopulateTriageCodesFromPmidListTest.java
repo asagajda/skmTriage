@@ -50,7 +50,7 @@ public class _04_PopulateTriageCodesFromPmidListTest {
 			dbUrl = dbUrl.substring(l + 1, dbUrl.length());
 	
 		archiveFile = ctx.getResource(
-				"classpath:edu/isi/bmkeg/skm/triage/triage_VPDMf.zip").getFile();
+				"classpath:edu/isi/bmkeg/skm/triage/triage-mysql.zip").getFile();
 		
 		codeFile = ctx.getResource(
 				"classpath:edu/isi/bmkeg/skm/triage/mgi/testCodes.txt").getFile();

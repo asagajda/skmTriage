@@ -37,7 +37,7 @@ public class BuildTriageDatabase {
 		try {
 			parser.parseArgument(args);
 			
-			URL url = ClassLoader.getSystemClassLoader().getResource("edu/isi/bmkeg/skm/triage/triage_VPDMf.zip");
+			URL url = ClassLoader.getSystemClassLoader().getResource("edu/isi/bmkeg/skm/triage/triage-mysql.zip");
 			String buildFilePath = url.getFile();
 			File buildFile = new File( buildFilePath );
 			VPDMfKnowledgeBaseBuilder builder = new VPDMfKnowledgeBaseBuilder(buildFile, 

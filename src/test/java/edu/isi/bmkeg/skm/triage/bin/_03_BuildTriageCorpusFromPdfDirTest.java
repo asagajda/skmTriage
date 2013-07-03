@@ -49,7 +49,7 @@ public class _03_BuildTriageCorpusFromPdfDirTest {
 			dbUrl = dbUrl.substring(l + 1, dbUrl.length());
 	
 		archiveFile = ctx.getResource(
-				"classpath:edu/isi/bmkeg/skm/triage/triage_VPDMf.zip").getFile();
+				"classpath:edu/isi/bmkeg/skm/triage/triage-mysql.zip").getFile();
 
 		File pdf1 = ctx.getResource(
 				"classpath:edu/isi/bmkeg/skm/triage/mgi/pdfs/19763139.pdf").getFile();

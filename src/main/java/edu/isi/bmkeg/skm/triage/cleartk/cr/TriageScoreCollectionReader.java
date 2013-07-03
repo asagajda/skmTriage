@@ -161,7 +161,7 @@ public class TriageScoreCollectionReader extends JCasCollectionReader_ImplBase {
 			this.startTime = System.currentTimeMillis();
 			
 			// Caches the first row so we can call rs.isAfterLast() to compute the result of hasNext()
-			moveNext();
+			if (hasNext()) moveNext();
 			
 		} catch (Exception e) {
 
