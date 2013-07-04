@@ -87,6 +87,8 @@ public class TriageScoreCollectionReader extends JCasCollectionReader_ImplBase {
 	
 	protected ResultSet rs;
 
+	private boolean eof = false;
+	
 	protected long startTime, endTime;
 
 	protected int pos = 0, count = 0;
@@ -160,8 +162,8 @@ public class TriageScoreCollectionReader extends JCasCollectionReader_ImplBase {
 			
 			this.startTime = System.currentTimeMillis();
 			
-			// Caches the first row so we can call rs.isAfterLast() to compute the result of hasNext()
-			if (hasNext()) moveNext();
+			// Caches the first row so we can cache eof to compute the result of hasNext()			
+			moveNext();
 			
 		} catch (Exception e) {
 
@@ -206,12 +208,7 @@ public class TriageScoreCollectionReader extends JCasCollectionReader_ImplBase {
 	 * @see com.ibm.uima.arg0collection.base_cpm.BaseCollectionReader#hasNext()
 	 */
 	public boolean hasNext() throws IOException, CollectionException {
-
-		try {
-			return ! this.rs.isAfterLast();
-		} catch (SQLException e) {
-			throw new IOException(e);
-		}
+		return !eof;
 
 	}
 		
@@ -224,12 +221,12 @@ public class TriageScoreCollectionReader extends JCasCollectionReader_ImplBase {
 	}
 
 	private void moveNext() throws SQLException {
-		this.rs.next();
-		if (this.skipUnknowns) {
-			while (!this.rs.isAfterLast()) {
+		eof = !rs.next();
+		if (skipUnknowns) {
+			while (!eof) {
 				String code = this.rs.getString("inOutCode");
 				if (TriageCode.IN.equals(code) || TriageCode.OUT.equals(code) ) break;
-				this.rs.next();
+				eof = !rs.next();
 			}
 		} 
 	}
