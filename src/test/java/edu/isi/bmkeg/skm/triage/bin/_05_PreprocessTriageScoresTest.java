@@ -57,7 +57,7 @@ ApplicationContext ctx;
 		outDir = codeFile.getParentFile();
 		
 		File pdf1 = ctx.getResource(
-				"classpath:edu/isi/bmkeg/skm/triage/mgi/pdfs/19763139.pdf").getFile();
+				"classpath:edu/isi/bmkeg/skm/triage/mgi/pdfs/19763139_A.pdf").getFile();
 
 		pdfDir = pdf1.getParentFile();
 		if( !pdfDir.exists() ) {

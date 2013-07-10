@@ -52,12 +52,14 @@ public class _03_BuildTriageCorpusFromPdfDirTest {
 				"classpath:edu/isi/bmkeg/skm/triage/triage-mysql.zip").getFile();
 
 		File pdf1 = ctx.getResource(
-				"classpath:edu/isi/bmkeg/skm/triage/mgi/pdfs/19763139.pdf").getFile();
+				"classpath:edu/isi/bmkeg/skm/triage/mgi/pdfs/19763139_A.pdf").getFile();
 
 		pdfDir = pdf1.getParentFile();
 		if( !pdfDir.exists() ) {
 			throw new Exception("WorkingDirectory:" + pdfDir.getPath() + "/pdf does not exist");
 		}
+		
+		triageCodes = new File(pdfDir.getParent() + "/testCodes.txt");
 		
 		builder = new VPDMfKnowledgeBaseBuilder(archiveFile, 
 				login, password, dbUrl); 
@@ -78,8 +80,20 @@ public class _03_BuildTriageCorpusFromPdfDirTest {
 		builder.buildDatabaseFromArchive();
 				
 		corpusName = "TriageCorpus";
-		
+
 		String[] args = new String[] { 
+				"-name", "AP", 
+				"-desc", "Test article corpus",  
+				"-regex", "A", 
+				"-owner", "Gully Burns",
+				"-db", dbUrl, 
+				"-l", login, 
+				"-p", password 
+				};
+
+		EditArticleCorpus.main(args);
+		
+		args = new String[] { 
 				"-name", corpusName, 
 				"-desc", "Test triage corpus", 
 				"-owner", "Gully Burns",
@@ -99,8 +113,8 @@ public class _03_BuildTriageCorpusFromPdfDirTest {
 		
 	}
 	
-	@Test
-	public final void testBuildTriageCorpusFromScratch() throws Exception {
+	/*@Test
+	public final void testBuildTriageCorpusFromFileNames() throws Exception {
 
 		String[] args = new String[] { 
 				"-pdfs", pdfDir.getPath(), 
@@ -110,10 +124,24 @@ public class _03_BuildTriageCorpusFromPdfDirTest {
 				"-p", password
 				};
 
-		AddPmidEncodedPdfsToCorpus.main(args);
-				
-						
-	}
+		BuildTriageCorpusFromPdfDir.main(args);
+										
+	}*/
 		
+	@Test
+	public final void testBuildTriageCorpusFromCodeFile() throws Exception {
+
+		String[] args = new String[] { 
+				"-pdfs", pdfDir.getPath(), 
+				"-corpus", corpusName, 
+				"-codeList", triageCodes.getPath(), 
+				"-db", dbUrl, 
+				"-l", login, 
+				"-p", password
+				};
+
+		BuildTriageCorpusFromPdfDir.main(args);
+										
+	}
 }
 

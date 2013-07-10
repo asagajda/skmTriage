@@ -84,6 +84,7 @@ public class _02_EditArticleCorpusTest {
 		String[] args = new String[] { 
 				"-name", "Allele Phenotype", 
 				"-desc", "MGI Allele Phenotype", 
+				"-regex", "_(.*A.*)\\.pdf",
 				"-owner", "Gully Burns",
 				"-db", dbUrl, 
 				"-l", login, 
@@ -100,6 +101,7 @@ public class _02_EditArticleCorpusTest {
 		String[] args = new String[] { 
 				"-name", "Allele Phenotype", 
 				"-desc", "CHANGE THIS", 
+				"-regex", "_(.*A.*)\\.pdf",
 				"-owner", "CHANGE THIS",
 				"-db", dbUrl, 
 				"-l", login, 
@@ -111,6 +113,7 @@ public class _02_EditArticleCorpusTest {
 		args = new String[] { 
 				"-name", "Allele Phenotype", 
 				"-desc", "MGI Allele Phenotype", 
+				"-regex", "_(.*A.*)\\.pdf",
 				"-owner", "Gully Burns",
 				"-db", dbUrl, 
 				"-l", login, 
@@ -118,8 +121,6 @@ public class _02_EditArticleCorpusTest {
 				};
 
 		EditArticleCorpus.main(args);
-
-		
 		
 	}
 	

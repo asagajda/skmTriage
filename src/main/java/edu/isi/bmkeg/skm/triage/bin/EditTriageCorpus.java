@@ -63,7 +63,11 @@ public class EditTriageCorpus {
 			System.err.println("Either adds or edits a uniquely named TriageCorpus.");
 			System.err.println("\n\n Options: \n");
 			parser.printUsage(System.err);
-			System.exit(-1);
+			
+			// Rather than exiting the system, we throw an exception to allow other 
+			// programs running this one to exit gracefully.
+			throw e;
+			
 		}
 				
 		TriageEngine te = null;
