@@ -14,6 +14,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import edu.isi.bmkeg.digitalLibrary.bin.AddPmidEncodedPdfsToCorpus;
 import edu.isi.bmkeg.digitalLibrary.bin.EditArticleCorpus;
 import edu.isi.bmkeg.digitalLibrary.dao.vpdmf.VpdmfCitationsDao;
+import edu.isi.bmkeg.skm.triage.bin.BuildTriageCorpusFromPdfDir;
 import edu.isi.bmkeg.skm.triage.bin.BuildTriageCorpusFromPmidList;
 import edu.isi.bmkeg.skm.triage.bin.EditTriageCorpus;
 import edu.isi.bmkeg.utils.springContext.AppContext;
@@ -81,11 +82,12 @@ public class AA_CreateTriageDBTest {
 	@Test
 	public final void testBuildTriageCorpusFromScratch() throws Exception {
 
-		String targetCorpusName = "MGI-IN";
+		String targetCorpusName = "AP";
 
 		String[] args = new String[] { 
 				"-name", targetCorpusName, 
-				"-desc", "The primary triage corpus for MGI", 
+				"-desc", "The primary triage corpus for AP", 
+				"-regex", "A", 
 				"-owner", "MGI",
 				"-db", dbUrl, 
 				"-l", login, 
@@ -110,23 +112,13 @@ public class AA_CreateTriageDBTest {
 		args = new String[] { 
 				"-pdfs", pdfDir.getPath(), 
 				"-corpus", triageCorpusName, 
+				"-codeList", triageCodes.getPath(), 
 				"-db", dbUrl, 
 				"-l", login, 
 				"-p", password
 				};
 
-		AddPmidEncodedPdfsToCorpus.main(args);
-
-		args = new String[] { 
-				"-triageCorpus", triageCorpusName, 
-				"-targetCorpus", targetCorpusName, 
-				"-pmidCodes", triageCodes.getPath(), 
-				"-db", dbUrl, 
-				"-l", login, 
-				"-p", password
-				};
-
-		BuildTriageCorpusFromPmidList.main(args);
+		BuildTriageCorpusFromPdfDir.main(args);
 		
 	}
 		
