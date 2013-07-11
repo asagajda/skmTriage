@@ -1,0 +1,29 @@
+Executed BuildTriageCorpusFromPdfDir to add PDFs to TriageCorpus and TriageScore
+
+# Please enter the commit message for your changes. Lines starting
+# with '#' will be ignored, and an empty message aborts the commit.
+# On branch master
+# Changes to be committed:
+#   (use "git reset HEAD <file>..." to unstage)
+#
+#	modified:   pom.xml
+#	modified:   src/main/java/edu/isi/bmkeg/skm/triage/bin/EditTriageCorpus.java
+#	modified:   src/test/java/edu/isi/bmkeg/skm/triage/bin/_02_EditArticleCorpusTest.java
+#	modified:   src/test/java/edu/isi/bmkeg/skm/triage/bin/_03_BuildTriageCorpusFromPdfDirTest.java
+#	modified:   src/test/java/edu/isi/bmkeg/skm/triage/bin/_04_PopulateTriageCodesFromPmidListTest.java
+#	modified:   src/test/java/edu/isi/bmkeg/skm/triage/bin/_05_PreprocessTriageScoresTest.java
+#	modified:   src/test/java/edu/isi/bmkeg/skm/triage/bin/_06_TriageDocumentClassifierTest.java
+#	deleted:    src/test/resources/edu/isi/bmkeg/skm/triage/mgi/pdfs/19763139.pdf
+#	deleted:    src/test/resources/edu/isi/bmkeg/skm/triage/mgi/pdfs/19876070.pdf
+#	deleted:    src/test/resources/edu/isi/bmkeg/skm/triage/mgi/pdfs/19911007.pdf
+#	modified:   src/test/resources/edu/isi/bmkeg/skm/triage/mgi/testCodes.txt
+#
+# Untracked files:
+#   (use "git add <file>..." to include in what will be committed)
+#
+#	.DS_Store
+#	src/main/installers/
+#	src/main/java/edu/isi/bmkeg/skm/triage/bin/BuildTriageCorpusFromPdfDir.java
+#	src/test/resources/edu/isi/bmkeg/skm/triage/mgi/pdfs/19763139_A.pdf
+#	src/test/resources/edu/isi/bmkeg/skm/triage/mgi/pdfs/19876070_G.pdf
+#	src/test/resources/edu/isi/bmkeg/skm/triage/mgi/pdfs/19911007_AGC.pdf
