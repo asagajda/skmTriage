@@ -49,7 +49,7 @@ public class PreprocessTriageDocumentsTest {
 			dbUrl = dbUrl.substring(l + 1, dbUrl.length());
 
 		triageCorpusName = "Small";
-		targetCorpusName = "MGI-IN";
+		targetCorpusName = "AP";
 		
 		outputDir = new File("target/mgi/small");
 		if (outputDir.exists()) {
@@ -91,7 +91,7 @@ public class PreprocessTriageDocumentsTest {
 		if (testIn.exists()) cnt += countLines(testIn);
 		if (testOut.exists()) cnt += countLines(testOut);
 		
-		Assert.assertEquals(4, cnt);
+		Assert.assertEquals(3, cnt);
 						
 	}
 	

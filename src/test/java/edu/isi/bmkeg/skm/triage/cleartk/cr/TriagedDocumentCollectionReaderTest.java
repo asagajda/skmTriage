@@ -28,9 +28,9 @@ import edu.isi.bmkeg.utils.springContext.BmkegProperties;
 public class TriagedDocumentCollectionReaderTest {
 
 	private static String test_triage_corpus_name = "Small"; 
-	private static String test_target_corpus_name = "MGI-IN"; 
-	private static int test_corpus_known_outcome_cnt = 4; 
-	private static int test_corpus_cnt = 5; 
+	private static String test_target_corpus_name = "AP"; 
+	private static int test_corpus_known_outcome_cnt = 3; 
+	private static int test_corpus_cnt = 4; 
 	private static int test_corpus_no_doc_cnt = 0; 
 	
 	@Autowired
