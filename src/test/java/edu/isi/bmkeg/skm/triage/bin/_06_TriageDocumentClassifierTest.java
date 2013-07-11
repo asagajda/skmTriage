@@ -27,7 +27,7 @@ ApplicationContext ctx;
 	
 	String login, password, dbUrl;
 	String triageCorpusName, targetCorpusName;
-	File archiveFile, pmidFile_allChecked, triageCodes, pdfDir, codeFile, outDir;
+	File archiveFile, pmidFile_allChecked, triageCodes, pdfDir, outDir;
 	VPDMfKnowledgeBaseBuilder builder;
 	
 	VpdmfCitationsDao dao;
@@ -52,10 +52,7 @@ ApplicationContext ctx;
 		archiveFile = ctx.getResource(
 				"classpath:edu/isi/bmkeg/skm/triage/triage-mysql.zip").getFile();
 		
-		codeFile = ctx.getResource(
-				"classpath:edu/isi/bmkeg/skm/triage/mgi/testCodes.txt").getFile();
-
-		outDir = codeFile.getParentFile();
+		outDir = new File("target");
 		
 		File pdf1 = ctx.getResource(
 				"classpath:edu/isi/bmkeg/skm/triage/mgi/pdfs/19763139_A.pdf").getFile();
@@ -65,6 +62,8 @@ ApplicationContext ctx;
 			throw new Exception("WorkingDirectory:" + pdfDir.getPath() + "/pdf does not exist");
 		}
 		
+		triageCodes = new File(pdfDir.getParent() + "/testCodes.txt");
+
 		builder = new VPDMfKnowledgeBaseBuilder(archiveFile, 
 				login, password, dbUrl); 
 
@@ -96,10 +95,11 @@ ApplicationContext ctx;
 
 		EditTriageCorpus.main(args);
 
-		targetCorpusName = "TargetCorpus";
+		targetCorpusName = "AP";
 		args = new String[] { 
 				"-name", targetCorpusName, 
 				"-desc", "Test target corpus", 
+				"-regex", "A", 
 				"-owner", "Gully Burns",
 				"-db", dbUrl, 
 				"-l", login, 
@@ -107,27 +107,17 @@ ApplicationContext ctx;
 				};
 
 		EditArticleCorpus.main(args);
-		
+
 		args = new String[] { 
 				"-pdfs", pdfDir.getPath(), 
 				"-corpus", triageCorpusName, 
+				"-codeList", triageCodes.getPath(), 
 				"-db", dbUrl, 
 				"-l", login, 
 				"-p", password
 				};
 
-		AddPmidEncodedPdfsToCorpus.main(args);
-		
-		args = new String[] { 
-				"-triageCorpus", triageCorpusName, 
-				"-targetCorpus", targetCorpusName, 
-				"-pmidCodes", codeFile.getPath(), 
-				"-db", dbUrl, 
-				"-l", login, 
-				"-p", password
-				};
-
-		BuildTriageCorpusFromPmidList.main(args);
+		BuildTriageCorpusFromPdfDir.main(args);
 		
 	}
 
@@ -139,7 +129,7 @@ ApplicationContext ctx;
 	}
 		
 	@Test
-	public final void testBuildTriageCorpusFromScratch() throws Exception {
+	public final void testTriageDocumentsClassifier() throws Exception {
 
 		String[] args = new String[] {
 				"-train",
