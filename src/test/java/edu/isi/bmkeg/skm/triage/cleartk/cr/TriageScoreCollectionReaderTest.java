@@ -25,7 +25,7 @@ import edu.isi.bmkeg.utils.springContext.BmkegProperties;
 @DirtiesContext(classMode=ClassMode.AFTER_EACH_TEST_METHOD) // Forcing the initialization of the ApplicationContext after each test.
 															// This is needed to provide a clean dao instance and a blank db which is
 															// produced during the application context initialization.
-public class TriagedDocumentCollectionReaderTest {
+public class TriageScoreCollectionReaderTest {
 
 	private static String test_triage_corpus_name = "Small"; 
 	private static String test_target_A_corpus_name = "AP"; 
