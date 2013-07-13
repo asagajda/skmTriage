@@ -100,55 +100,55 @@ public class TriagedDocumentCollectionReaderTest {
 
 	}
 
-//	@Test
-//	public void testTriagedDocumentCollectionReader_corpusA_all() throws Exception {
-//		
-//		CollectionReader cr = TriageScoreCollectionReader.load(
-//				test_target_A_corpus_name,
-//				prop.getDbUser(),
-//				prop.getDbPassword(),
-//				prop.getDbUrl()+ "_triage");
-//
-//		int inCnt = 0;
-//		int outCnt = 0;
-//		int unknownCnt = 0;
-//		int noDocCnt = 0;
-//		
-//		final CAS cas = CasCreationUtils.createCas(asList(cr.getMetaData()));
-//		
-//		try {
-//			// Process
-//			while (cr.hasNext()) {
-//				cr.getNext(cas);
-//				
-//				String doc = cas.getDocumentText();
-//				
-//				if (doc == null || doc.length() == 0)
-//					noDocCnt++;
-//
-//				TriageScore cit = (TriageScore) CasUtil.selectSingle(cas, CasUtil.getType(cas, TriageScore.class));
-//				Assert.assertNotNull(cit);
-//				Assert.assertTrue(cit.getVpdmfId() > 0);
-//				Assert.assertNotNull(cit.getInOutCode());
-//				
-//				if (cit.getInOutCode().equals("in")) inCnt++; 
-//				else if (cit.getInOutCode().equals("out")) outCnt++; 
-//				else unknownCnt++;
-//				cas.reset();
-//			}
-//			
-//		}
-//		finally {
-//			// Destroy
-//			cr.destroy();
-//		}
-//		
-//		Assert.assertEquals(test_corpus_A_unknown_all_cnt, unknownCnt);				
-//		Assert.assertEquals(test_corpus_A_in_all_cnt, inCnt);				
-//		Assert.assertEquals(test_corpus_A_out_all_cnt, outCnt);				
-//		Assert.assertEquals(test_corpus_no_doc_cnt, noDocCnt);				
-//
-//	}
+	@Test
+	public void testTriagedDocumentCollectionReader_corpusA_all() throws Exception {
+		
+		CollectionReader cr = TriageScoreCollectionReader.load(
+				test_target_A_corpus_name,
+				prop.getDbUser(),
+				prop.getDbPassword(),
+				prop.getDbUrl()+ "_triage");
+
+		int inCnt = 0;
+		int outCnt = 0;
+		int unknownCnt = 0;
+		int noDocCnt = 0;
+		
+		final CAS cas = CasCreationUtils.createCas(asList(cr.getMetaData()));
+		
+		try {
+			// Process
+			while (cr.hasNext()) {
+				cr.getNext(cas);
+				
+				String doc = cas.getDocumentText();
+				
+				if (doc == null || doc.length() == 0)
+					noDocCnt++;
+
+				TriageScore cit = (TriageScore) CasUtil.selectSingle(cas, CasUtil.getType(cas, TriageScore.class));
+				Assert.assertNotNull(cit);
+				Assert.assertTrue(cit.getVpdmfId() > 0);
+				Assert.assertNotNull(cit.getInOutCode());
+				
+				if (cit.getInOutCode().equals("in")) inCnt++; 
+				else if (cit.getInOutCode().equals("out")) outCnt++; 
+				else unknownCnt++;
+				cas.reset();
+			}
+			
+		}
+		finally {
+			// Destroy
+			cr.destroy();
+		}
+		
+		Assert.assertEquals(test_corpus_A_unknown_all_cnt, unknownCnt);				
+		Assert.assertEquals(test_corpus_A_in_all_cnt, inCnt);				
+		Assert.assertEquals(test_corpus_A_out_all_cnt, outCnt);				
+		Assert.assertEquals(test_corpus_no_doc_cnt, noDocCnt);				
+
+	}
 
 	@Test
 	public void testTriagedDocumentCollectionReaderSkipUnknowns_corpusA_triage() throws Exception {
