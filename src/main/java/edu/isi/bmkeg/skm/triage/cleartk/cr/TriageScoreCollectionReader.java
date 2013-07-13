@@ -155,10 +155,9 @@ public class TriageScoreCollectionReader extends JCasCollectionReader_ImplBase {
 			
 			// Query constructed with SqlQueryBuilder based on the TriagedArticle view.
 			// (FTD added manually).
-			String sql = "SELECT DISTINCT LiteratureCitation_0__ArticleCitation.pmid," +
-					"FTD_0__FTD.text,TriageScore_0__TriageScore.inOutCode, TriageScore_0__TriageScore.vpdmfId " + 
+			String sql = "SELECT DISTINCT FTD_0__FTD.text,TriageScore_0__TriageScore.inOutCode, TriageScore_0__TriageScore.vpdmfId " + 
 					"FROM FTD AS FTD_0__FTD, LiteratureCitation AS LiteratureCitation_0__LiteratureCitation, " + 
-					"ArticleCitation AS LiteratureCitation_0__ArticleCitation, TriageCorpus AS TriageCorpus_0__TriageCorpus, " +
+					"TriageCorpus AS TriageCorpus_0__TriageCorpus, " +
 					"Corpus AS TriageCorpus_0__Corpus, Corpus AS TargetCorpus_0__Corpus, TriageScore AS TriageScore_0__TriageScore " + 
 					" WHERE TriageCorpus_0__Corpus.name = '" + triageCorpusName + "' AND " + 
 					" TargetCorpus_0__Corpus.name = '" + targetCorpusName +  "' AND " +
@@ -166,7 +165,6 @@ public class TriageScoreCollectionReader extends JCasCollectionReader_ImplBase {
 					" TriageCorpus_0__TriageCorpus.vpdmfId=TriageScore_0__TriageScore.triageCorpus_id AND " + 
 					" TriageCorpus_0__TriageCorpus.vpdmfId=TriageCorpus_0__Corpus.vpdmfId AND " + 
 					" TargetCorpus_0__Corpus.vpdmfId=TriageScore_0__TriageScore.targetCorpus_id AND " +
-					" LiteratureCitation_0__LiteratureCitation.vpdmfId=LiteratureCitation_0__ArticleCitation.vpdmfId AND " + 
 					" FTD_0__FTD.vpdmfId=LiteratureCitation_0__LiteratureCitation.fullText_id";
 			
 			triageEngine.getCitDao().getCoreDao().getCe().connectToDB();
