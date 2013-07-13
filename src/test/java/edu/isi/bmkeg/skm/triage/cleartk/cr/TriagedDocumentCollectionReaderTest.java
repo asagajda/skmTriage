@@ -28,9 +28,13 @@ import edu.isi.bmkeg.utils.springContext.BmkegProperties;
 public class TriagedDocumentCollectionReaderTest {
 
 	private static String test_triage_corpus_name = "Small"; 
-	private static String test_target_corpus_name = "AP"; 
-	private static int test_corpus_known_outcome_cnt = 3; 
-	private static int test_corpus_cnt = 4; 
+	private static String test_target_A_corpus_name = "AP"; 
+	private static int test_corpus_A_in_triage_cnt = 3; 
+	private static int test_corpus_A_out_triage_cnt = 1; 
+	private static int test_corpus_A_unknown_triage_cnt = 1; 
+	private static int test_corpus_A_in_all_cnt = 5; 
+	private static int test_corpus_A_out_all_cnt = 1; 
+	private static int test_corpus_A_unknown_all_cnt = 2; 
 	private static int test_corpus_no_doc_cnt = 0; 
 	
 	@Autowired
@@ -47,15 +51,17 @@ public class TriagedDocumentCollectionReaderTest {
 	}
 	
 	@Test
-	public void testTriagedDocumentCollectionReader() throws Exception {
+	public void testTriagedDocumentCollectionReader_corpusA_triage() throws Exception {
 		
 		CollectionReader cr = TriageScoreCollectionReader.load(
-				test_triage_corpus_name, test_target_corpus_name,
+				test_triage_corpus_name, test_target_A_corpus_name,
 				prop.getDbUser(),
 				prop.getDbPassword(),
 				prop.getDbUrl()+ "_triage");
 
-		int i = 0;
+		int inCnt = 0;
+		int outCnt = 0;
+		int unknownCnt = 0;
 		int noDocCnt = 0;
 		
 		final CAS cas = CasCreationUtils.createCas(asList(cr.getMetaData()));
@@ -75,8 +81,9 @@ public class TriagedDocumentCollectionReaderTest {
 				Assert.assertTrue(cit.getVpdmfId() > 0);
 				Assert.assertNotNull(cit.getInOutCode());
 				
-				i++;	
-								
+				if (cit.getInOutCode().equals("in")) inCnt++; 
+				else if (cit.getInOutCode().equals("out")) outCnt++; 
+				else unknownCnt++;
 				cas.reset();
 			}
 			
@@ -86,22 +93,76 @@ public class TriagedDocumentCollectionReaderTest {
 			cr.destroy();
 		}
 		
-		Assert.assertEquals(test_corpus_cnt, i);				
+		Assert.assertEquals(test_corpus_A_unknown_triage_cnt, unknownCnt);				
+		Assert.assertEquals(test_corpus_A_in_triage_cnt, inCnt);				
+		Assert.assertEquals(test_corpus_A_out_triage_cnt, outCnt);				
 		Assert.assertEquals(test_corpus_no_doc_cnt, noDocCnt);				
 
 	}
 
+//	@Test
+//	public void testTriagedDocumentCollectionReader_corpusA_all() throws Exception {
+//		
+//		CollectionReader cr = TriageScoreCollectionReader.load(
+//				test_target_A_corpus_name,
+//				prop.getDbUser(),
+//				prop.getDbPassword(),
+//				prop.getDbUrl()+ "_triage");
+//
+//		int inCnt = 0;
+//		int outCnt = 0;
+//		int unknownCnt = 0;
+//		int noDocCnt = 0;
+//		
+//		final CAS cas = CasCreationUtils.createCas(asList(cr.getMetaData()));
+//		
+//		try {
+//			// Process
+//			while (cr.hasNext()) {
+//				cr.getNext(cas);
+//				
+//				String doc = cas.getDocumentText();
+//				
+//				if (doc == null || doc.length() == 0)
+//					noDocCnt++;
+//
+//				TriageScore cit = (TriageScore) CasUtil.selectSingle(cas, CasUtil.getType(cas, TriageScore.class));
+//				Assert.assertNotNull(cit);
+//				Assert.assertTrue(cit.getVpdmfId() > 0);
+//				Assert.assertNotNull(cit.getInOutCode());
+//				
+//				if (cit.getInOutCode().equals("in")) inCnt++; 
+//				else if (cit.getInOutCode().equals("out")) outCnt++; 
+//				else unknownCnt++;
+//				cas.reset();
+//			}
+//			
+//		}
+//		finally {
+//			// Destroy
+//			cr.destroy();
+//		}
+//		
+//		Assert.assertEquals(test_corpus_A_unknown_all_cnt, unknownCnt);				
+//		Assert.assertEquals(test_corpus_A_in_all_cnt, inCnt);				
+//		Assert.assertEquals(test_corpus_A_out_all_cnt, outCnt);				
+//		Assert.assertEquals(test_corpus_no_doc_cnt, noDocCnt);				
+//
+//	}
+
 	@Test
-	public void testTriagedDocumentCollectionReaderSkipUnknowns() throws Exception {
+	public void testTriagedDocumentCollectionReaderSkipUnknowns_corpusA_triage() throws Exception {
 		
 		CollectionReader cr = TriageScoreCollectionReader.load(
-				test_triage_corpus_name, test_target_corpus_name,
+				test_triage_corpus_name, test_target_A_corpus_name,
 				prop.getDbUser(),
 				prop.getDbPassword(),
 				prop.getDbUrl()+ "_triage",
 				true);
 
-		int i = 0;
+		int inCnt = 0;
+		int outCnt = 0;
+		int unknownCnt = 0;
 		int noDocCnt = 0;
 		
 		final CAS cas = CasCreationUtils.createCas(asList(cr.getMetaData()));
@@ -121,7 +182,9 @@ public class TriagedDocumentCollectionReaderTest {
 				Assert.assertTrue(cit.getVpdmfId() > 0);
 				Assert.assertNotNull(cit.getInOutCode());
 				
-				i++;	
+				if (cit.getInOutCode().equals("in")) inCnt++; 
+				else if (cit.getInOutCode().equals("out")) outCnt++; 
+				else unknownCnt++;
 								
 				cas.reset();
 			}
@@ -132,7 +195,9 @@ public class TriagedDocumentCollectionReaderTest {
 			cr.destroy();
 		}
 		
-		Assert.assertEquals(test_corpus_known_outcome_cnt, i);				
+		Assert.assertEquals(0, unknownCnt);				
+		Assert.assertEquals(test_corpus_A_in_triage_cnt, inCnt);				
+		Assert.assertEquals(test_corpus_A_out_triage_cnt, outCnt);				
 		Assert.assertEquals(test_corpus_no_doc_cnt, noDocCnt);				
 
 	}
