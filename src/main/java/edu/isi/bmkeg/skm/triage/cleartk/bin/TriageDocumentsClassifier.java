@@ -24,7 +24,6 @@ import org.uimafit.factory.AggregateBuilder;
 import org.uimafit.factory.AnalysisEngineFactory;
 import org.uimafit.pipeline.JCasIterable;
 import org.uimafit.pipeline.SimplePipeline;
-import org.uimafit.testing.util.HideOutput;
 import org.uimafit.util.JCasUtil;
 
 import edu.isi.bmkeg.skm.cleartk.type.CatorgorizedFtdText;
@@ -39,8 +38,8 @@ public class TriageDocumentsClassifier {
 
 	public static class Options extends Options_ImplBase {
 		
-		@Option(name = "-triageCorpus", usage = "The triage corpus to be evaluated",
-				required = true, metaVar = "NAME")
+		@Option(name = "-triageCorpus", usage = "The triage corpus to be evaluated. It is required if -predict is used.",
+				required = false, metaVar = "NAME")
 		public String triageCorpus = "";
 
 		@Option(name = "-targetCorpus", usage = "The target corpus that we're linking to",
@@ -241,6 +240,12 @@ public class TriageDocumentsClassifier {
 			error = true;
 		}
 
+		if ((options.triageCorpus == null || options.triageCorpus.length() == 0) &&
+				options.predict) {
+			System.err.println("-triageCorpus is required if -predict is used.");
+			error = true;			
+		}
+		
 		if (error) {
 			CmdLineParser parser = new CmdLineParser(options);
 			System.err.print("Usage: ");

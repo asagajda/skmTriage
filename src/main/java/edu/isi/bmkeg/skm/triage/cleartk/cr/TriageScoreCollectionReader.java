@@ -89,7 +89,7 @@ public class TriageScoreCollectionReader extends JCasCollectionReader_ImplBase {
 	public static final String SKIP_UNKNOWNS = ConfigurationParameterFactory
 			.createConfigurationParameterName(TriageScoreCollectionReader.class,
 					"skipUnknowns");
-	@ConfigurationParameter(mandatory = false, description = "The Digital Library URL", 
+	@ConfigurationParameter(mandatory = false, description = "Skip triageScores with value 'unknown'", 
 			defaultValue = "false")
 	protected boolean skipUnknowns;
 	

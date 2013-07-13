@@ -149,6 +149,22 @@ ApplicationContext ctx;
 
 						
 	}
-		
+
+	@Test
+	public final void testTriageDocumentsClassifierAllTriageCorpora() throws Exception {
+
+		String[] args = new String[] {
+				"-train",
+				"-targetCorpus", targetCorpusName, 
+				"-modelDir", outDir.getAbsolutePath(), 
+				"-l", login, 
+				"-p", password, 
+				"-db", dbUrl
+				};
+
+		TriageDocumentsClassifier.main(args);
+						
+	}
+
 }
 
