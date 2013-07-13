@@ -28,7 +28,7 @@ public class AA_CreateTriageDBTest {
 	ApplicationContext ctx;
 	
 	String login, password, dbUrl;
-	File archiveFile, pmidFile_allChecked, triageCodes, pdfDir;
+	File archiveFile, pmidFile_allChecked, triageCodes, pdfDir, pdfDir2;
 	VPDMfKnowledgeBaseBuilder builder;
 	
 	VpdmfCitationsDao dao;
@@ -47,6 +47,9 @@ public class AA_CreateTriageDBTest {
 		
 		pdfDir = new File(triageCodes.getParentFile(), "/pdfs" );
 		
+		pdfDir2 = ctx.getResource(
+				"classpath:edu/isi/bmkeg/skm/triage/small2/pdfs/21884797_A.pdf").getFile().getParentFile();
+				
 		int l = dbUrl.lastIndexOf("/");
 		if (l != -1)
 			dbUrl = dbUrl.substring(l + 1, dbUrl.length());
@@ -95,7 +98,21 @@ public class AA_CreateTriageDBTest {
 				};
 
 		EditArticleCorpus.main(args);
-				
+
+		String targetCorpusName2 = "GO";
+
+		args = new String[] { 
+				"-name", targetCorpusName2, 
+				"-desc", "The primary triage corpus for GO", 
+				"-regex", "G", 
+				"-owner", "MGI",
+				"-db", dbUrl, 
+				"-l", login, 
+				"-p", password
+				};
+
+		EditArticleCorpus.main(args);
+
 		String triageCorpusName = "Small";
 		
 		args = new String[] { 
@@ -109,10 +126,33 @@ public class AA_CreateTriageDBTest {
 
 		EditTriageCorpus.main(args);
 
+		String triageCorpusName2 = "Small2";
+		
+		args = new String[] { 
+				"-name", triageCorpusName2, 
+				"-desc", "Test triage corpus 2", 
+				"-owner", "john",
+				"-db", dbUrl, 
+				"-l", login, 
+				"-p", password, 
+				};
+
+		EditTriageCorpus.main(args);
+
 		args = new String[] { 
 				"-pdfs", pdfDir.getPath(), 
 				"-corpus", triageCorpusName, 
 				"-codeList", triageCodes.getPath(), 
+				"-db", dbUrl, 
+				"-l", login, 
+				"-p", password
+				};
+
+		BuildTriageCorpusFromPdfDir.main(args);
+		
+		args = new String[] { 
+				"-pdfs", pdfDir2.getPath(), 
+				"-corpus", triageCorpusName2, 
 				"-db", dbUrl, 
 				"-l", login, 
 				"-p", password
