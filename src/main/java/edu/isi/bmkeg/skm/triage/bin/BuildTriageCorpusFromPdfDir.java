@@ -33,6 +33,10 @@ public class BuildTriageCorpusFromPdfDir {
 
 	private static Logger logger = Logger.getLogger(BuildTriageCorpusFromPdfDir.class);
 	
+	private static Pattern pmidPatt = Pattern.compile("^(\\d+).*\\.pdf$");	
+	private static Pattern noCodePatt = Pattern.compile("^(\\d+)\\.pdf$");
+	private static Pattern codePatt = Pattern.compile("^(\\d+)_(.*)\\.pdf$");
+	
 	public static class Options {
 
 		@Option(name = "-pdfs", usage = "Pdfs directory or file", required = true, metaVar = "PDF-DIR-OR-FILE")
@@ -94,9 +98,7 @@ public class BuildTriageCorpusFromPdfDir {
 				throw new Exception("TriageCorpus " + options.corpusName + " does not exist.");
 			}
 			
-			Map<Integer,Long> pmidMap1 = te.insertPmidPdfFileOrDir(options.pdfFileOrDir);
-			
-			Pattern pmidPatt = Pattern.compile("^(\\d+).*\\.pdf$");			
+			Map<Integer, String> codeList = compileCodeList(options);
 			
 			Corpus_qo cq = new Corpus_qo();
 			List<LightViewInstance> cList = te.getDigLibDao().getCoreDao().list(cq, "ArticleCorpus");
@@ -104,60 +106,38 @@ public class BuildTriageCorpusFromPdfDir {
 				Corpus c = te.getCitDao().getCoreDao().findById(lvi.getVpdmfId(), new Corpus(), "Corpus");
 				if( c.getRegex() == null )
 					continue;
-				
-				Pattern p1 = Pattern.compile("^(\\d+)_(.*" + c.getRegex() +".*)\\.pdf$");
-				Pattern p2 = Pattern.compile("^(\\d+)\\.pdf$");
-				
-				Map<Integer,String> pmidCodes = new HashMap<Integer,String>();
-				
-				Map<Integer, String> codeList = new HashMap<Integer, String>();
-				
-				List<File> pdfList = new ArrayList<File>(
-						Converters.recursivelyListFiles(options.pdfFileOrDir).values()
-						);
-				for( File f : pdfList ) {
-					Matcher m = pmidPatt.matcher(f.getName());
-					if (m.find()) {
-						Integer id = new Integer(m.group(1));
-						codeList.put(id, f.getName());
+
+				// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+				// Are there any codes assigned? If so, we assume that 
+				// ALL PAPERS IN THE COLLECTION ARE 'IN' OR 'OUT'
+				// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+				boolean allInOut = false;
+				for( String s : codeList.values() ) {
+					if( s.length() > 0 ) {
+						allInOut = true;
+						break;
 					}
-					
 				}
 				
-				if (options.codeList != null) {
-					FileInputStream fis = new FileInputStream(options.codeList);
-					BufferedReader br = new BufferedReader(new InputStreamReader(fis, Charset.forName("UTF-8")));
-					String line = "";
-					while ((line = br.readLine()) != null) {
-						Matcher m = pmidPatt.matcher(line);
-						if (m.find()) {
-							Integer id = new Integer(m.group(1));
-							codeList.put(id, line);
+				if( allInOut ) {
+					logger.info("ASSUMING THAT THERE ARE NO UNCLASSIFED DOCUMENTS");
+				} else {
+					logger.info("ASSUMING THAT THERE ARE ONLY UNCLASSIFED DOCUMENTS");
+				}
+				
+				Map<Integer,String> pmidCodes = new HashMap<Integer,String>();
+				for( Integer pmid: codeList.keySet() ) {
+					String code = codeList.get(pmid);
+					if( !allInOut ) {
+						pmidCodes.put(pmid, TriageCode.UNCLASSIFIED);
+					}
+					else {
+						if( code.contains(c.getRegex()) ) {
+							pmidCodes.put(pmid, TriageCode.IN);
+						} else { 
+							pmidCodes.put(pmid, TriageCode.OUT);
 						}
 					}
-				} 
-					
-				for( String s : codeList.values() ) {
-					
-					Matcher m = pmidPatt.matcher(s);
-					if (!m.find()) {
-						continue;
-					}
-					Integer id = new Integer(m.group(1));
-					
-					m = p2.matcher(s);
-					if (m.find()) {
-						pmidCodes.put(id, TriageCode.UNCLASSIFIED);
-						continue;
-					}
-					
-					m = p1.matcher(s);
-					if (m.find()) {
-						pmidCodes.put(id, TriageCode.IN);
-					} else {
-						pmidCodes.put(id, TriageCode.OUT);
-					}
-
 				}
 			
 				te.populateArticleTriageCorpus(tc.getName(), c.getName(), pmidCodes);
@@ -176,6 +156,42 @@ public class BuildTriageCorpusFromPdfDir {
 		
 		}
 
+	}
+	
+	private static Map<Integer, String> compileCodeList(Options options) throws Exception {
+		Map<Integer, String> codeList = new HashMap<Integer, String>();
+		
+		List<File> pdfList = new ArrayList<File>(
+				Converters.recursivelyListFiles(options.pdfFileOrDir).values()
+				);
+		for( File f : pdfList ) {
+			Matcher m = pmidPatt.matcher(f.getName());
+			if (m.find()) {
+				Integer id = new Integer(m.group(1));
+				codeList.put(id, "");
+			}
+		}
+		
+		if (options.codeList != null) {
+			FileInputStream fis = new FileInputStream(options.codeList);
+			BufferedReader br = new BufferedReader(new InputStreamReader(fis, Charset.forName("UTF-8")));
+			String line = "";
+			while ((line = br.readLine()) != null) {
+				Matcher noCodeMatch = noCodePatt.matcher(line);
+				if (noCodeMatch.find()) {
+					Integer id = new Integer(noCodeMatch.group(1));
+					codeList.put(id, "");
+				}
+				Matcher codeMatch = codePatt.matcher(line);
+				if (codeMatch.find()) {
+					Integer id = new Integer(codeMatch.group(1));
+					codeList.put(id, codeMatch.group(2));
+				}
+			}
+		} 
+				
+		return codeList;
+		
 	}
 
 }
