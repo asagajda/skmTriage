@@ -78,6 +78,7 @@ public class TriagedDocumentCollectionReaderTest {
 
 				TriageScore cit = (TriageScore) CasUtil.selectSingle(cas, CasUtil.getType(cas, TriageScore.class));
 				Assert.assertNotNull(cit);
+				Assert.assertTrue(cit.getCitation_id() > 0);
 				Assert.assertTrue(cit.getVpdmfId() > 0);
 				Assert.assertNotNull(cit.getInOutCode());
 				
@@ -128,7 +129,8 @@ public class TriagedDocumentCollectionReaderTest {
 
 				TriageScore cit = (TriageScore) CasUtil.selectSingle(cas, CasUtil.getType(cas, TriageScore.class));
 				Assert.assertNotNull(cit);
-				Assert.assertTrue(cit.getVpdmfId() > 0);
+				Assert.assertTrue(cit.getCitation_id() > 0);
+				Assert.assertTrue(cit.getVpdmfId() < 0);
 				Assert.assertNotNull(cit.getInOutCode());
 				
 				if (cit.getInOutCode().equals("in")) inCnt++; 
@@ -178,6 +180,7 @@ public class TriagedDocumentCollectionReaderTest {
 					noDocCnt++;
 
 				TriageScore cit = (TriageScore) CasUtil.selectSingle(cas, CasUtil.getType(cas, TriageScore.class));
+				Assert.assertTrue(cit.getCitation_id() > 0);
 				Assert.assertNotNull(cit);
 				Assert.assertTrue(cit.getVpdmfId() > 0);
 				Assert.assertNotNull(cit.getInOutCode());
@@ -231,7 +234,8 @@ public class TriagedDocumentCollectionReaderTest {
 
 				TriageScore cit = (TriageScore) CasUtil.selectSingle(cas, CasUtil.getType(cas, TriageScore.class));
 				Assert.assertNotNull(cit);
-				Assert.assertTrue(cit.getVpdmfId() > 0);
+				Assert.assertTrue(cit.getCitation_id() > 0);
+				Assert.assertTrue(cit.getVpdmfId() < 0);
 				Assert.assertNotNull(cit.getInOutCode());
 				
 				if (cit.getInOutCode().equals("in")) inCnt++; 

@@ -153,9 +153,9 @@ public class TriageDocumentsClassifier {
 			
 			te.updateInScore(triageDocId, document.getInScore());
 
-			// TODO remove debuging statements
-			String cat = document.getCategory();
-			System.out.println("id, cat, score: " + triageDocId + ", " + cat +", " + document.getInScore());
+			// debuging statements
+//			String cat = document.getCategory();
+//			System.out.println("id, cat, score: " + triageDocId + ", " + cat +", " + document.getInScore());
 		}
 
 	}

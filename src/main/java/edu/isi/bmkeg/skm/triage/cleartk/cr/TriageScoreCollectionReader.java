@@ -41,11 +41,13 @@ public class TriageScoreCollectionReader extends JCasCollectionReader_ImplBase {
 	
 	private static class AggregatedScore {
 		public long vpdmfId;
+		public long citId;
 		public String code;
 		public String text;
 		
-		public AggregatedScore(long vpdmfId, String code, String text) {
+		public AggregatedScore(long vpdmfId, long citId, String code, String text) {
 			this.vpdmfId = vpdmfId;
+			this.citId = citId;
 			this.code = code;
 			this.text = text;
 		}
@@ -95,6 +97,7 @@ public class TriageScoreCollectionReader extends JCasCollectionReader_ImplBase {
 
 	private boolean eof = false;
 
+	private boolean isAggregate;
 	/**
 	 * The next AggregatedScore or null if EOF
 	 */
@@ -167,11 +170,15 @@ public class TriageScoreCollectionReader extends JCasCollectionReader_ImplBase {
 
 		try {
 
+			isAggregate =  (triageCorpusName == null || triageCorpusName.length() == 0);
 			triageEngine = new TriageEngine();
 			triageEngine.initializeVpdmfDao(login, password, dbUrl);				
 			
 			// Query based on a query constructed with SqlQueryBuilder based on the TriagedArticle view.
-			String sql = "SELECT DISTINCT FTD_0__FTD.text,TriageScore_0__TriageScore.inOutCode, LiteratureCitation_0__LiteratureCitation.vpdmfId " + 
+			String sql = "SELECT DISTINCT FTD_0__FTD.text, " + 
+					" TriageScore_0__TriageScore.inOutCode, " +
+					" TriageScore_0__TriageScore.vpdmfId, " + 
+					" TriageScore_0__TriageScore.citation_id " + 
 					"FROM FTD AS FTD_0__FTD, " + 
 					" LiteratureCitation AS LiteratureCitation_0__LiteratureCitation, " + 
 					" Corpus AS TargetCorpus_0__Corpus, " +
@@ -182,7 +189,7 @@ public class TriageScoreCollectionReader extends JCasCollectionReader_ImplBase {
 					" TargetCorpus_0__Corpus.vpdmfId=TriageScore_0__TriageScore.targetCorpus_id AND " +
 					" FTD_0__FTD.vpdmfId=LiteratureCitation_0__LiteratureCitation.fullText_id";
 			
-			if (triageCorpusName != null && triageCorpusName.length() > 0) {
+			if (!isAggregate) {
 				sql += " AND TriageScore_0__TriageScore.triageCorpus_id IN " + 
 						"(SELECT TriageCorpus_0__Corpus.vpdmfId " + 
 						"FROM " +
@@ -192,7 +199,7 @@ public class TriageScoreCollectionReader extends JCasCollectionReader_ImplBase {
 			}
 
 
-			sql += " ORDER BY LiteratureCitation_0__LiteratureCitation.vpdmfId";
+			sql += " ORDER BY TriageScore_0__TriageScore.citation_id";
 			
 			triageEngine.getCitDao().getCoreDao().getCe().connectToDB();
 			
@@ -228,7 +235,8 @@ public class TriageScoreCollectionReader extends JCasCollectionReader_ImplBase {
 				jcas.setDocumentText( currentAs.text );
 
 			TriageScore doc = new TriageScore(jcas);
-		    doc.setVpdmfId(currentAs.vpdmfId);
+		    doc.setVpdmfId(isAggregate ? -1 : currentAs.vpdmfId);
+		    doc.setCitation_id(currentAs.citId);
 		    doc.setInOutCode(currentAs.code);
 		    doc.addToIndexes(jcas);
 
@@ -291,11 +299,14 @@ public class TriageScoreCollectionReader extends JCasCollectionReader_ImplBase {
 			return null;
 		
 		AggregatedScore as = 
-				new AggregatedScore(rs.getLong("vpdmfId"), rs.getString("inOutCode"), rs.getString("text"));
+				new AggregatedScore(rs.getLong("vpdmfId"),
+						rs.getLong("citation_id"),
+						rs.getString("inOutCode"),
+						rs.getString("text"));
 		
 		eof = !rs.next();
 		
-		while (!eof && rs.getLong("vpdmfId") == as.vpdmfId) {
+		while (!eof && rs.getLong("citation_id") == as.citId) {
 			String code =  rs.getString("inOutCode");
 			if (TriageCode.IN.equals(code)) 
 				as.code = code;
