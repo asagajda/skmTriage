@@ -23,9 +23,14 @@ import edu.isi.bmkeg.skm.triage.model.TriageCode;
 import edu.isi.bmkeg.triage.uimaTypes.TriageScore;
 
 /**
- * This Collection Reader runs over every citation in a given corpus to provide
- * access to the abstract, the full-text of the document or a predefined section
- * of the document. We want to optimize this interaction for speed, so we run a
+ * This Collection Reader runs over every triageScore for a given target corpus to provide
+ * access to the full-text of the document and its triageCode (e.g., in, out, unknown). 
+ * This collection reader will retrieve at most one item per citation. If no triage corpus parameter
+ * is specified it will aggregate the triageScores corresponding to all existing triage corpora. If a 
+ * single citation has different triage codes in different triage corpora it will use the following rule
+ * to assign an aggregated triage code: 1) "in" will override "out" and "unknown" and 2) "out" will override
+ * "unknown".
+ * We want to optimize this interaction for speed, so we run a
  * manual query over the underlying database involving a minimal subset of
  * tables.
  * 
@@ -36,46 +41,35 @@ public class TriageScoreCollectionReader extends JCasCollectionReader_ImplBase {
 
 	private static Logger logger = Logger.getLogger(TriageScoreCollectionReader.class);
 
-	public static final String START_AT = ConfigurationParameterFactory
-			.createConfigurationParameterName(TriageScoreCollectionReader.class,
-					"startAt");
-	@ConfigurationParameter(mandatory = false, description = "The starting point of the read.")
-	protected int startAt;
-
-	public static final String END_AT = ConfigurationParameterFactory
-			.createConfigurationParameterName(TriageScoreCollectionReader.class,
-					"endAt");
-	@ConfigurationParameter(mandatory = false, description = "The ending point of the read.")
-	protected int endAt;
-
 	public static final String TRIAGE_CORPUS_NAME = ConfigurationParameterFactory
 			.createConfigurationParameterName(TriageScoreCollectionReader.class,
 					"triageCorpusName");
-	@ConfigurationParameter(mandatory = false, description = "The name of the triage corpus to be read")
+	@ConfigurationParameter(mandatory = false, 
+			description = "If specified, the triageScores will be restricted to the given triage corpus, else it will not restrict triageScores to any triage corpus")
 	protected String triageCorpusName;
 
 	public static final String TARGET_CORPUS_NAME = ConfigurationParameterFactory
 			.createConfigurationParameterName(TriageScoreCollectionReader.class,
 					"targetCorpusName");
-	@ConfigurationParameter(mandatory = false, description = "The name of the target corpus to be read")
+	@ConfigurationParameter(mandatory = true, description = "The name of the target corpus to be read")
 	protected String targetCorpusName;
 
 	public static final String LOGIN = ConfigurationParameterFactory
 			.createConfigurationParameterName(TriageScoreCollectionReader.class,
 					"login");
-	@ConfigurationParameter(mandatory = false, description = "Login for the Digital Library")
+	@ConfigurationParameter(mandatory = true, description = "Login for the Digital Library")
 	protected String login;
 
 	public static final String PASSWORD = ConfigurationParameterFactory
 			.createConfigurationParameterName(TriageScoreCollectionReader.class,
 					"password");
-	@ConfigurationParameter(mandatory = false, description = "Password for the Digital Library")
+	@ConfigurationParameter(mandatory = true, description = "Password for the Digital Library")
 	protected String password;
 
 	public static final String DB_URL = ConfigurationParameterFactory
 			.createConfigurationParameterName(TriageScoreCollectionReader.class,
 					"dbUrl");
-	@ConfigurationParameter(mandatory = false, description = "The Digital Library URL")
+	@ConfigurationParameter(mandatory = true, description = "The Digital Library URL")
 	protected String dbUrl;
 	
 	public static final String SKIP_UNKNOWNS = ConfigurationParameterFactory
@@ -102,6 +96,27 @@ public class TriageScoreCollectionReader extends JCasCollectionReader_ImplBase {
 			throws ResourceInitializationException {
 
 		return load(triageCorpusName, targetCorpusName, login, password, dbName, false);
+		
+	}
+
+	public static CollectionReader load(
+			String targetCorpusName,
+			String login,
+			String password, String dbName)
+			throws ResourceInitializationException {
+
+		return load(null, targetCorpusName, login, password, dbName, false);
+		
+	}
+
+	public static CollectionReader load(
+			String targetCorpusName,
+			String login,
+			String password, String dbName,
+			boolean skipUnknowns)
+			throws ResourceInitializationException {
+
+		return load(null, targetCorpusName, login, password, dbName, skipUnknowns);
 		
 	}
 
@@ -140,8 +155,8 @@ public class TriageScoreCollectionReader extends JCasCollectionReader_ImplBase {
 			
 			// Query constructed with SqlQueryBuilder based on the TriagedArticle view.
 			// (FTD added manually).
-			String sql = "SELECT DISTINCT LiteratureCitation_0__ArticleCitation." + 
-					"pmid,FTD_0__FTD.text,TriageScore_0__TriageScore.inOutCode, TriageScore_0__TriageScore.vpdmfId " + 
+			String sql = "SELECT DISTINCT LiteratureCitation_0__ArticleCitation.pmid," +
+					"FTD_0__FTD.text,TriageScore_0__TriageScore.inOutCode, TriageScore_0__TriageScore.vpdmfId " + 
 					"FROM FTD AS FTD_0__FTD, LiteratureCitation AS LiteratureCitation_0__LiteratureCitation, " + 
 					"ArticleCitation AS LiteratureCitation_0__ArticleCitation, TriageCorpus AS TriageCorpus_0__TriageCorpus, " +
 					"Corpus AS TriageCorpus_0__Corpus, Corpus AS TargetCorpus_0__Corpus, TriageScore AS TriageScore_0__TriageScore " + 
