@@ -17,8 +17,6 @@ import org.kohsuke.args4j.CmdLineException;
 import org.kohsuke.args4j.CmdLineParser;
 import org.kohsuke.args4j.Option;
 
-import bsh.This;
-
 import edu.isi.bmkeg.digitalLibrary.model.citations.Corpus;
 import edu.isi.bmkeg.digitalLibrary.model.qo.citations.Corpus_qo;
 import edu.isi.bmkeg.skm.triage.controller.TriageEngine;
@@ -97,6 +95,8 @@ public class BuildTriageCorpusFromPdfDir {
 			if( tc == null ) {
 				throw new Exception("TriageCorpus " + options.corpusName + " does not exist.");
 			}
+			
+			Map<Integer,Long> pmidMap1 = te.insertPmidPdfFileOrDir(options.pdfFileOrDir);
 			
 			Map<Integer, String> codeList = compileCodeList(options);
 			
@@ -188,7 +188,20 @@ public class BuildTriageCorpusFromPdfDir {
 					codeList.put(id, codeMatch.group(2));
 				}
 			}
-		} 
+		} else {
+			for( File f : pdfList ) {
+				Matcher noCodeMatch = noCodePatt.matcher(f.getName());
+				if (noCodeMatch.find()) {
+					Integer id = new Integer(noCodeMatch.group(1));
+					codeList.put(id, "");
+				}
+				Matcher codeMatch = codePatt.matcher(f.getName());
+				if (codeMatch.find()) {
+					Integer id = new Integer(codeMatch.group(1));
+					codeList.put(id, codeMatch.group(2));
+				}
+			}	
+		}
 				
 		return codeList;
 		
