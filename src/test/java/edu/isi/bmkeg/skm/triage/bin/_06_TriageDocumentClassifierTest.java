@@ -4,6 +4,7 @@ import java.io.File;
 import java.sql.SQLException;
 
 import org.junit.After;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -135,13 +136,15 @@ ApplicationContext ctx;
 				"-train",
 				"-triageCorpus", triageCorpusName, 
 				"-targetCorpus", targetCorpusName, 
-				"-modelDir", outDir.getAbsolutePath(), 
+				"-homeDir", outDir.getAbsolutePath(), 
 				"-l", login, 
 				"-p", password, 
 				"-db", dbUrl
 				};
 
 		TriageDocumentsClassifier.main(args);
+		
+		Assert.assertTrue(new File(outDir, dbUrl + "/" + targetCorpusName).exists());
 		
 		args[0] = "-predict";
 
@@ -153,16 +156,35 @@ ApplicationContext ctx;
 	@Test
 	public final void testTriageDocumentsClassifierAllTriageCorpora() throws Exception {
 
-		String[] args = new String[] {
-				"-train",
-				"-targetCorpus", targetCorpusName, 
-				"-modelDir", outDir.getAbsolutePath(), 
-				"-l", login, 
-				"-p", password, 
-				"-db", dbUrl
-				};
+		String origUserHomeProp = System.getProperty("user.home");
+		
+		try {
+			
+			File homeDir = new File(outDir, "userHome");
+			
+			System.setProperty("user.home", homeDir.getAbsolutePath());
+			
+			String[] args = new String[] {
+					"-train",
+					"-targetCorpus", targetCorpusName, 
+					"-l", login, 
+					"-p", password, 
+					"-db", dbUrl
+					};
 
-		TriageDocumentsClassifier.main(args);
+			TriageDocumentsClassifier.main(args);
+			
+			Assert.assertTrue(new File(homeDir, "bmkeg/" + dbUrl + "/" + targetCorpusName).exists());			
+			
+		} finally {
+		
+			if (origUserHomeProp != null) {
+				System.setProperty("user.home", origUserHomeProp);				
+			}
+				
+			
+		}
+
 						
 	}
 

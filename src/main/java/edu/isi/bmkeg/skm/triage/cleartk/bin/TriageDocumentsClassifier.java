@@ -12,7 +12,6 @@ import org.cleartk.classifier.jar.DefaultDataWriterFactory;
 import org.cleartk.classifier.jar.DirectoryDataWriterFactory;
 import org.cleartk.classifier.jar.GenericJarClassifierFactory;
 import org.cleartk.classifier.jar.JarClassifierBuilder;
-import org.cleartk.classifier.liblinear.LIBLINEARBooleanOutcomeDataWriter;
 import org.cleartk.classifier.libsvm.LIBSVMBooleanOutcomeDataWriter;
 import org.cleartk.syntax.opennlp.SentenceAnnotator;
 import org.cleartk.token.stem.snowball.DefaultSnowballStemmer;
@@ -46,9 +45,9 @@ public class TriageDocumentsClassifier {
 				required = true, metaVar = "NAME")
 		public String targetCorpus = "";
 
-		@Option(name = "-modelDir", usage = "Target directory", 
-				required  = true, metaVar = "DIR")
-		public File modelDir;
+		@Option(name = "-homeDir", usage = "Directory where application data will be persisted", 
+				required  = false, metaVar = "DIR")
+		public File homeDir;
 		
 		@Option(name = "-l", usage = "Database login", required = true, metaVar = "LOGIN")
 		public String login = "";
@@ -225,11 +224,6 @@ public class TriageDocumentsClassifier {
 
 		boolean error = false;
 		
-		if (!options.modelDir.exists()) {
-			System.err.println("Model directory doesn't exist: " + options.modelDir);
-			error = true;
-		}
-		
 		if (options.train && options.predict) {
 			System.err.println("Only one of -predict or -train can be specified.");
 			error = true;
@@ -254,11 +248,26 @@ public class TriageDocumentsClassifier {
 			parser.printUsage(System.err);
 			System.exit(-1);
 		}
+		
+		if (options.homeDir == null) {
+			System.out.println("homeDir parameter not specified. Using user's home directory instead.");
+			options.homeDir = new File(System.getProperty("user.home") + "/bmkeg");
+		}
+		
+		if (!options.homeDir.exists()) {
+			System.out.println("Home directory [" + options.homeDir.getAbsolutePath() + "] doesn't exists. Creating it ...");
+			options.homeDir.mkdirs();
+		}
+		
+		File modelDir = new File(options.homeDir,options.dbName + "/" + options.targetCorpus);
+		
+		if (!modelDir.exists()) modelDir.mkdirs();
+		
 
 		TriageDocumentsClassifier cl = new TriageDocumentsClassifier(
 				options.triageCorpus,
 				options.targetCorpus,
-				options.modelDir,
+				modelDir,
 				options.login, 
 				options.password, 
 				options.dbName);
@@ -268,7 +277,7 @@ public class TriageDocumentsClassifier {
 			System.out.println("Training Triage Documents Classifier.");
 			System.out.println("TriageCorpus: " + options.triageCorpus);
 			System.out.println("TargetCorpus: " + options.targetCorpus);
-			System.out.println("Model dir: " + options.modelDir);
+			System.out.println("Model dir: " + modelDir);
 
 			long startTime = System.currentTimeMillis();
 
@@ -283,7 +292,7 @@ public class TriageDocumentsClassifier {
 			System.out.println("Predicting Triage Documents Classifier.");
 			System.out.println("TriageCorpus: " + options.triageCorpus);
 			System.out.println("TargetCorpus: " + options.targetCorpus);
-			System.out.println("Model dir: " + options.modelDir);
+			System.out.println("Model dir: " + modelDir);
 
 			long startTime = System.currentTimeMillis();
 
