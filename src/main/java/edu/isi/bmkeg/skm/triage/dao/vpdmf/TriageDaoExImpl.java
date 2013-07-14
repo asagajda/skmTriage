@@ -170,6 +170,7 @@ public class TriageDaoExImpl implements TriageDaoEx {
 
 			int count = 0;
 			long t = System.currentTimeMillis();
+			
 			ChangeEngine ce = (ChangeEngine) this.coreDao.getCe();
 			VPDMf top = ce.readTop();
 
@@ -208,6 +209,46 @@ public class TriageDaoExImpl implements TriageDaoEx {
 				ai.writeValueString(targetCorpus);
 				
 				String code = pmidCodes.get(pmid);
+				
+				ai = vi.readAttributeInstance(
+						"]LiteratureCitation|ViewTable.vpdmfLabel", 0);
+				ai.writeValueString(lvi.getVpdmfLabel());
+
+				ai = vi.readAttributeInstance(
+						"]LiteratureCitation|ViewTable.vpdmfId", 0);
+				ai.writeValueString(lvi.getVpdmfId() + "");
+				
+				// May may need to delete the existing data in the database.
+				List<LightViewInstance> lviList = getCe().executeListQuery(vi);
+				if( lviList.size() > 0 ) {
+					
+					//
+					// REMOVE EXISTING DATA FROM THE TRIAGE SCORE TABLE.
+					// NEED TO UPDATE THE DELETION FUNCTIONS WITHIN VPDMf
+					//
+					String sql = "DELETE ts.*, vt.* " +
+								 "FROM TriageScore AS ts, " + 
+								 " ViewTable AS vt, " +
+								 " LiteratureCitation AS litcit, " +
+								 " ArticleCitation AS artcit, " +
+								 " Corpus AS targetc, " +
+								 " Corpus AS triagec " +
+								 "WHERE vt.vpdmfId = ts.vpdmfId " +
+								 "  AND ts.citation_id = litcit.vpdmfId " +		
+								 "  AND litcit.vpdmfId = artcit.vpdmfId " +		
+								 "  AND artcit.pmid = '" + pmid + "'" +
+								 "  AND ts.targetCorpus_id = targetc.vpdmfId " +		
+								 "  AND targetc.name = '" + targetCorpus + "'" +
+								 "  AND ts.triageCorpus_id = triagec.vpdmfId " +
+								 "  AND triagec.name = '" + triageCorpus + "';";					
+					
+					this.getCoreDao().getCe().executeRawUpdateQuery(sql);
+					
+					this.coreDao.getCe().prettyPrintSQL(sql);
+					
+				}
+
+				count++;
 
 				ai = vi.readAttributeInstance(
 						"]TriageScore|TriageScore.inOutCode", 0);
@@ -217,16 +258,6 @@ public class TriageDaoExImpl implements TriageDaoEx {
 						"]TriageScore|TriageScore.inScore", 0);
 				ai.writeValueString("0");
 				
-				ai = vi.readAttributeInstance(
-						"]LiteratureCitation|ViewTable.vpdmfLabel", 0);
-				ai.writeValueString(lvi.getVpdmfLabel());
-
-				ai = vi.readAttributeInstance(
-						"]LiteratureCitation|ViewTable.vpdmfId", 0);
-				ai.writeValueString(lvi.getVpdmfId() + "");
-
-				count++;
-
 				getCe().executeInsertQuery(vi);
 
 			}

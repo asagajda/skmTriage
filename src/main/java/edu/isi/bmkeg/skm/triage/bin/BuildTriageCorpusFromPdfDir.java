@@ -120,9 +120,9 @@ public class BuildTriageCorpusFromPdfDir {
 				}
 				
 				if( allInOut ) {
-					logger.info("ASSUMING THAT THERE ARE NO UNCLASSIFED DOCUMENTS");
+					logger.info("ASSUMING THAT ALL DOCUMENTS ARE CLASSIFED");
 				} else {
-					logger.info("ASSUMING THAT THERE ARE ONLY UNCLASSIFED DOCUMENTS");
+					logger.info("ASSUMING THAT ALL DOCUMENTS ARE UNCLASSIFED");
 				}
 				
 				Map<Integer,String> pmidCodes = new HashMap<Integer,String>();
