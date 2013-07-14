@@ -4,3 +4,4 @@
 /.settings
 /general.drl
 /journalAbbrLookup.jObj
+**.DS_Store
