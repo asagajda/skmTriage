@@ -91,7 +91,7 @@ public class PreprocessTriageDocumentsTest {
 		if (testIn.exists()) cnt += countLines(testIn);
 		if (testOut.exists()) cnt += countLines(testOut);
 		
-		Assert.assertEquals(4, cnt);
+		Assert.assertEquals(5, cnt);
 						
 	}
 	

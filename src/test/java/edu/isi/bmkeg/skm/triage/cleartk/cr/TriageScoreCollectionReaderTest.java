@@ -29,12 +29,12 @@ public class TriageScoreCollectionReaderTest {
 
 	private static String test_triage_corpus_name = "Small"; 
 	private static String test_target_A_corpus_name = "AP"; 
-	private static int test_corpus_A_in_triage_cnt = 3; 
-	private static int test_corpus_A_out_triage_cnt = 1; 
-	private static int test_corpus_A_unknown_triage_cnt = 1; 
-	private static int test_corpus_A_in_all_cnt = 5; 
-	private static int test_corpus_A_out_all_cnt = 1; 
-	private static int test_corpus_A_unknown_all_cnt = 2; 
+	private static int test_corpus_A_in_triage_cnt = 2; 
+	private static int test_corpus_A_out_triage_cnt = 3; 
+	private static int test_corpus_A_unknown_triage_cnt = 0; 
+	private static int test_corpus_A_in_all_cnt = 4; 
+	private static int test_corpus_A_out_all_cnt = 4; 
+	private static int test_corpus_A_unknown_all_cnt = 1; 
 	private static int test_corpus_no_doc_cnt = 0; 
 	
 	@Autowired

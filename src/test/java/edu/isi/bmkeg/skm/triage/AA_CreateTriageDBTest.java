@@ -11,11 +11,9 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
-import edu.isi.bmkeg.digitalLibrary.bin.AddPmidEncodedPdfsToCorpus;
 import edu.isi.bmkeg.digitalLibrary.bin.EditArticleCorpus;
 import edu.isi.bmkeg.digitalLibrary.dao.vpdmf.VpdmfCitationsDao;
 import edu.isi.bmkeg.skm.triage.bin.BuildTriageCorpusFromPdfDir;
-import edu.isi.bmkeg.skm.triage.bin.BuildTriageCorpusFromPmidList;
 import edu.isi.bmkeg.skm.triage.bin.EditTriageCorpus;
 import edu.isi.bmkeg.utils.springContext.AppContext;
 import edu.isi.bmkeg.utils.springContext.BmkegProperties;
@@ -28,7 +26,7 @@ public class AA_CreateTriageDBTest {
 	ApplicationContext ctx;
 	
 	String login, password, dbUrl;
-	File archiveFile, pmidFile_allChecked, triageCodes, pdfDir, pdfDir2;
+	File archiveFile, pmidFile_allChecked, triageCodes, pdfDir, pdfDir2, pdfDir3;
 	VPDMfKnowledgeBaseBuilder builder;
 	
 	VpdmfCitationsDao dao;
@@ -49,6 +47,9 @@ public class AA_CreateTriageDBTest {
 		
 		pdfDir2 = ctx.getResource(
 				"classpath:edu/isi/bmkeg/skm/triage/small2/pdfs/21884797_A.pdf").getFile().getParentFile();
+				
+		pdfDir3 = ctx.getResource(
+				"classpath:edu/isi/bmkeg/skm/triage/small3/pdfs/21989724.pdf").getFile().getParentFile();
 				
 		int l = dbUrl.lastIndexOf("/");
 		if (l != -1)
@@ -139,6 +140,19 @@ public class AA_CreateTriageDBTest {
 
 		EditTriageCorpus.main(args);
 
+		String triageCorpusName3 = "Small3";
+		
+		args = new String[] { 
+				"-name", triageCorpusName3, 
+				"-desc", "Test triage corpus 3", 
+				"-owner", "peter",
+				"-db", dbUrl, 
+				"-l", login, 
+				"-p", password, 
+				};
+
+		EditTriageCorpus.main(args);
+
 		args = new String[] { 
 				"-pdfs", pdfDir.getPath(), 
 				"-corpus", triageCorpusName, 
@@ -153,6 +167,16 @@ public class AA_CreateTriageDBTest {
 		args = new String[] { 
 				"-pdfs", pdfDir2.getPath(), 
 				"-corpus", triageCorpusName2, 
+				"-db", dbUrl, 
+				"-l", login, 
+				"-p", password
+				};
+
+		BuildTriageCorpusFromPdfDir.main(args);
+		
+		args = new String[] { 
+				"-pdfs", pdfDir3.getPath(), 
+				"-corpus", triageCorpusName3, 
 				"-db", dbUrl, 
 				"-l", login, 
 				"-p", password
