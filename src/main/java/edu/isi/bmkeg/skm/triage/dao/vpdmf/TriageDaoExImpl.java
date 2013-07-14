@@ -250,6 +250,11 @@ public class TriageDaoExImpl implements TriageDaoEx {
 
 				count++;
 
+				if( (count % 50 == 0) )
+					logger.info("Updated " + count + " / " + pmids.size() 
+							+ " documents in " + 
+							(System.currentTimeMillis() - t) / 1000.0 + " s");
+				
 				ai = vi.readAttributeInstance(
 						"]TriageScore|TriageScore.inOutCode", 0);
 				ai.setValue(code);
@@ -265,8 +270,7 @@ public class TriageDaoExImpl implements TriageDaoEx {
 			ce.commitTransaction();
 
 			long deltaT = System.currentTimeMillis() - t;
-			logger.info("Added " + count + " entries in " + deltaT / 1000.0
-					+ " s\n");
+			logger.info("Added " + count + " entries in " + deltaT / 1000.0 + " s\n");
 
 		} catch (Exception e) {
 
