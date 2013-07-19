@@ -37,6 +37,8 @@ public interface TriageDaoEx {
 	// ~~~~~~~~~~~~~~~~~~~
 	public long updateTriageScore(TriageScore td)  throws Exception;
 	
+	public long updateTriagedArticle(TriageScore td)  throws Exception;
+	
 	// ~~~~~~~~~~~~~~~~~~~
 	// Delete Functions
 	// ~~~~~~~~~~~~~~~~~~~

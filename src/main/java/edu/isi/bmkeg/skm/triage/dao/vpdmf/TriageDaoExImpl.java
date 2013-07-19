@@ -112,6 +112,11 @@ public class TriageDaoExImpl implements TriageDaoEx {
 	public long updateTriageScore(TriageScore td)  throws Exception {
 		return getCoreDao().update(td,"TriageScore");
 	}
+
+	@Override
+	public long updateTriagedArticle(TriageScore td)  throws Exception {
+		return getCoreDao().update(td,"TriagedArticle");
+	}
 	
 	// ~~~~~~~~~~~~~~~~~~~
 	// Delete Functions

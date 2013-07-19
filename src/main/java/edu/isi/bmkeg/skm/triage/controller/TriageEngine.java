@@ -248,7 +248,7 @@ public class TriageEngine extends DigitalLibraryEngine {
 
 	public void updateInScore(long vpdmfId, float inScore) throws Exception {
 		
-		TriageScore td =  this.triageDao.findTriageScoreById(vpdmfId);
+		TriageScore td =  this.triageDao.findTriagedArticleById(vpdmfId);
 	
 		if (td == null) {
 			logger.warn("Failed to find TriagedDocument with id:" + vpdmfId);
@@ -257,7 +257,7 @@ public class TriageEngine extends DigitalLibraryEngine {
 		
 		td.setInScore(inScore);
 		
-		getExTriageDao().updateTriageScore(td);
+		getExTriageDao().updateTriagedArticle(td);
 
 	}
 
