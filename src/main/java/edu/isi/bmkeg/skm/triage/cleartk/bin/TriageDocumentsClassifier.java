@@ -220,27 +220,30 @@ public class TriageDocumentsClassifier {
 	public static void main(String[] args) throws Exception {
 
 		Options options = new Options();
-		options.parseOptions(args);
-
-		boolean error = false;
 		
-		if (options.train && options.predict) {
-			System.err.println("Only one of -predict or -train can be specified.");
-			error = true;
-		}
+		try {
+			options.parseOptions(args);
+		 
 
-		if (!options.train && !options.predict) {
-			System.err.println("One of -predict or -train should be specified.");
-			error = true;
-		}
-
-		if ((options.triageCorpus == null || options.triageCorpus.length() == 0) &&
-				options.predict) {
-			System.err.println("-triageCorpus is required if -predict is used.");
-			error = true;			
-		}
-		
-		if (error) {
+			boolean error = false;
+			
+			if (options.train && options.predict) {	
+				String errString = "Only one of -predict or -train can be specified.";
+				throw new Exception(errString);
+			}
+	
+			if (!options.train && !options.predict) {
+				String errString = "One of -predict or -train should be specified.";
+				throw new Exception(errString);
+			}
+	
+			if ((options.triageCorpus == null || options.triageCorpus.length() == 0) &&
+					options.predict) {
+				String errString = "-triageCorpus is required if -predict is used.";
+				throw new Exception(errString);
+			}
+			
+		} catch (Exception e) {
 			CmdLineParser parser = new CmdLineParser(options);
 			System.err.print("Usage: ");
 			parser.printSingleLineUsage(System.err);

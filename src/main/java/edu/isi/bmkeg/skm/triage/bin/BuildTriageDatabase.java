@@ -53,6 +53,7 @@ public class BuildTriageDatabase {
 			logger.info("Triage Database " + options.dbName + " successfully created.");
 				
 		} catch (CmdLineException e1) {
+			
 			System.err.println(e1.getMessage());
 			System.err.print("Arguments: ");
 			parser.printSingleLineUsage(System.err);

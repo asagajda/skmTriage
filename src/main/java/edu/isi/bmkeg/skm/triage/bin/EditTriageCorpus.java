@@ -57,16 +57,15 @@ public class EditTriageCorpus {
 			parser.parseArgument(args);
 		
 		} catch (CmdLineException e) {
+			
 			System.err.println(e.getMessage());
 			System.err.print("Arguments: ");
 			parser.printSingleLineUsage(System.err);
-			System.err.println("Either adds or edits a uniquely named TriageCorpus.");
-			System.err.println("\n\n Options: \n");
+			System.err.println("\nEither adds or edits a uniquely named TriageCorpus.");
+			System.err.println("\n Options: \n");
 			parser.printUsage(System.err);
 			
-			// Rather than exiting the system, we throw an exception to allow other 
-			// programs running this one to exit gracefully.
-			throw e;
+			System.exit(-1);
 			
 		}
 				
