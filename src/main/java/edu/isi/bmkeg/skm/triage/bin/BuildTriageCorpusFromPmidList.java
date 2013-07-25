@@ -94,7 +94,7 @@ public class BuildTriageCorpusFromPmidList {
 		toAdd.removeAll(lookup.keySet());
 		te.insertArticlesFromPmidList(toAdd);
 
-		te.populateArticleTriageCorpus(triageCorpus, targetCorpus, pmidCodes);
+		te.getExTriageDao().addTriageDocumentsToCorpus(triageCorpus, targetCorpus, pmidCodes);
 		
 	}
 

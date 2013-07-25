@@ -1,5 +1,6 @@
 package edu.isi.bmkeg.skm.triage.dao.vpdmf;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
@@ -176,6 +177,9 @@ public class TriageDaoExImpl implements TriageDaoEx {
 			int count = 0;
 			long t = System.currentTimeMillis();
 			
+			SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+			String timestamp = df.format(new Date());
+			
 			ChangeEngine ce = (ChangeEngine) this.coreDao.getCe();
 			VPDMf top = ce.readTop();
 
@@ -235,21 +239,27 @@ public class TriageDaoExImpl implements TriageDaoEx {
 								 "FROM TriageScore AS ts, " + 
 								 " ViewTable AS vt, " +
 								 " LiteratureCitation AS litcit, " +
-								 " ArticleCitation AS artcit, " +
 								 " Corpus AS targetc, " +
 								 " Corpus AS triagec " +
 								 "WHERE vt.vpdmfId = ts.vpdmfId " +
 								 "  AND ts.citation_id = litcit.vpdmfId " +		
-								 "  AND litcit.vpdmfId = artcit.vpdmfId " +		
-								 "  AND artcit.pmid = '" + pmid + "'" +
+								 "  AND litcit.vpdmfId = " + lvi.getVpdmfId() +		
 								 "  AND ts.targetCorpus_id = targetc.vpdmfId " +		
 								 "  AND targetc.name = '" + targetCorpus + "'" +
 								 "  AND ts.triageCorpus_id = triagec.vpdmfId " +
-								 "  AND triagec.name = '" + triageCorpus + "';";					
+								 "  AND triagec.name = '" + triageCorpus + "';";
+										
+					// PURGE EVERYTHING FROM TRIAGE CORPUS
+					// DELETE ts.*, vt.* 
+					// FROM TriageScore AS ts,  
+					// ViewTable AS vt, 
+					// WHERE vt.vpdmfId = ts.vpdmfId 
+					// AND ts.triageCorpus_id = 26768;
 					
-					this.getCoreDao().getCe().executeRawUpdateQuery(sql);
+					int nRowsChanged = this.getCoreDao().getCe().executeRawUpdateQuery(sql);
 					
 					this.coreDao.getCe().prettyPrintSQL(sql);
+					logger.debug(nRowsChanged + " rows altered.");
 					
 				}
 
@@ -266,7 +276,15 @@ public class TriageDaoExImpl implements TriageDaoEx {
 
 				ai = vi.readAttributeInstance(
 						"]TriageScore|TriageScore.inScore", 0);
-				ai.writeValueString("0");
+				ai.writeValueString("-1");
+
+				ai = vi.readAttributeInstance(
+						"]TriageScore|TriageScore.classifyTimestamp", 0);
+				ai.writeValueString(timestamp);
+				
+				ai = vi.readAttributeInstance(
+						"]TriageScore|TriageScore.scoredTimestamp", 0);
+				ai.writeValueString(timestamp);
 				
 				getCe().executeInsertQuery(vi);
 

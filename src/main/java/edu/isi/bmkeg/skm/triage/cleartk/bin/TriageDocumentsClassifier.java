@@ -1,7 +1,7 @@
 package edu.isi.bmkeg.skm.triage.cleartk.bin;
 
 import java.io.File;
-import java.util.Collection;
+import java.util.Date;
 
 import org.apache.uima.analysis_engine.AnalysisEngine;
 import org.apache.uima.collection.CollectionReader;
@@ -140,6 +140,8 @@ public class TriageDocumentsClassifier {
 	    // Get classifier's outcome and update db
 		AnalysisEngine engine = builder.createAggregate();
 
+		Date timestamp = new Date();
+		
 		for (JCas jCas : new JCasIterable(collectionReader, engine)) {
 
 			CatorgorizedFtdText document = JCasUtil.selectSingle(jCas,
@@ -149,7 +151,7 @@ public class TriageDocumentsClassifier {
 			TriageScore tdoc = JCasUtil.selectSingle(jCas, TriageScore.class);
 			long triageDocId = tdoc.getVpdmfId();
 			
-			te.updateInScore(triageDocId, document.getInScore());
+			te.updateInScore(triageDocId, document.getInScore(), timestamp);
 
 			// debuging statements
 //			String cat = document.getCategory();

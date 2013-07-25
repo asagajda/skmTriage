@@ -5,19 +5,25 @@ import java.io.DataInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.InputStreamReader;
+import java.nio.charset.Charset;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.apache.log4j.Logger;
 
 import edu.isi.bmkeg.digitalLibrary.controller.DigitalLibraryEngine;
 import edu.isi.bmkeg.digitalLibrary.model.citations.ArticleCitation;
+import edu.isi.bmkeg.digitalLibrary.model.citations.Corpus;
 import edu.isi.bmkeg.digitalLibrary.model.citations.Journal;
+import edu.isi.bmkeg.digitalLibrary.model.qo.citations.Corpus_qo;
 import edu.isi.bmkeg.digitalLibrary.utils.pubmed.EFetcher;
 import edu.isi.bmkeg.skm.triage.dao.TriageDaoEx;
 import edu.isi.bmkeg.skm.triage.dao.vpdmf.TriageDaoExImpl;
@@ -26,13 +32,19 @@ import edu.isi.bmkeg.triage.dao.TriageDao;
 import edu.isi.bmkeg.triage.dao.impl.TriageDaoImpl;
 import edu.isi.bmkeg.triage.model.TriageCorpus;
 import edu.isi.bmkeg.triage.model.TriageScore;
+import edu.isi.bmkeg.utils.Converters;
 import edu.isi.bmkeg.vpdmf.dao.CoreDao;
+import edu.isi.bmkeg.vpdmf.model.instances.LightViewInstance;
 
 
 public class TriageEngine extends DigitalLibraryEngine {
 
 	private static Logger logger = Logger.getLogger(TriageEngine.class);
 
+	private static Pattern pmidPatt = Pattern.compile("^(\\d+).*\\.pdf$");	
+	private static Pattern noCodePatt = Pattern.compile("^(\\d+)\\.pdf$");
+	private static Pattern codePatt = Pattern.compile("^(\\d+)_(.*)\\.pdf$");
+	
 	private TriageDaoEx exTriageDao;
 
 	private TriageDao triageDao;
@@ -63,6 +75,113 @@ public class TriageEngine extends DigitalLibraryEngine {
 	public void setTriageDao(TriageDao triageDao) {
 		this.triageDao = triageDao;
 	}
+	
+	// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+	// High-level API Functions
+	// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+	public void buildTriageCorpusFromPdfFileOrDir(TriageCorpus tc, 
+			File pdfFileOrDir, File codeFile) throws Exception {
+
+		Map<Integer,Long> pmidMap1 = this.insertPmidPdfFileOrDir(pdfFileOrDir);
+		
+		Map<Integer, String> codeList = this.compileCodeList(pdfFileOrDir, codeFile);
+		
+		Corpus_qo cq = new Corpus_qo();
+		List<LightViewInstance> cList = this.getDigLibDao().getCoreDao().list(cq, "ArticleCorpus");
+		for( LightViewInstance lvi : cList ) {
+			Corpus c = this.getCitDao().getCoreDao().findById(lvi.getVpdmfId(), new Corpus(), "Corpus");
+			if( c.getRegex() == null )
+				continue;
+
+			// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+			// Are there any codes assigned? If so, we assume that 
+			// ALL PAPERS IN THE COLLECTION ARE 'IN' OR 'OUT'
+			// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+			boolean allInOut = false;
+			for( String s : codeList.values() ) {
+				if( s.length() > 0 ) {
+					allInOut = true;
+					break;
+				}
+			}
+			
+			if( allInOut ) {
+				logger.info("ASSUMING THAT ALL DOCUMENTS ARE CLASSIFED");
+			} else {
+				logger.info("ASSUMING THAT ALL DOCUMENTS ARE UNCLASSIFED");
+			}
+			
+			Map<Integer,String> pmidCodes = new HashMap<Integer,String>();
+			for( Integer pmid: codeList.keySet() ) {
+				String code = codeList.get(pmid);
+				if( !allInOut ) {
+					pmidCodes.put(pmid, TriageCode.UNCLASSIFIED);
+				}
+				else {
+					if( code.contains(c.getRegex()) ) {
+						pmidCodes.put(pmid, TriageCode.IN);
+					} else { 
+						pmidCodes.put(pmid, TriageCode.OUT);
+					}
+				}
+			}
+		
+			this.exTriageDao.addTriageDocumentsToCorpus(tc.getName(), c.getName(), pmidCodes);
+			
+		}
+	}
+	
+
+	private Map<Integer, String> compileCodeList(File pdfFileOrDir, File codeFile ) throws Exception {
+		Map<Integer, String> codeMap = new HashMap<Integer, String>();
+		
+		List<File> pdfList = new ArrayList<File>(
+				Converters.recursivelyListFiles(pdfFileOrDir).values()
+				);
+		for( File f : pdfList ) {
+			Matcher m = pmidPatt.matcher(f.getName());
+			if (m.find()) {
+				Integer id = new Integer(m.group(1));
+				codeMap.put(id, "");
+			}
+		}
+		
+		if (codeFile != null) {
+			FileInputStream fis = new FileInputStream(codeFile);
+			BufferedReader br = new BufferedReader(new InputStreamReader(fis, Charset.forName("UTF-8")));
+			String line = "";
+			while ((line = br.readLine()) != null) {
+				Matcher noCodeMatch = noCodePatt.matcher(line);
+				if (noCodeMatch.find()) {
+					Integer id = new Integer(noCodeMatch.group(1));
+					codeMap.put(id, "");
+				}
+				Matcher codeMatch = codePatt.matcher(line);
+				if (codeMatch.find()) {
+					Integer id = new Integer(codeMatch.group(1));
+					codeMap.put(id, codeMatch.group(2));
+				}
+			}
+		} else {
+			for( File f : pdfList ) {
+				Matcher noCodeMatch = noCodePatt.matcher(f.getName());
+				if (noCodeMatch.find()) {
+					Integer id = new Integer(noCodeMatch.group(1));
+					codeMap.put(id, "");
+				}
+				Matcher codeMatch = codePatt.matcher(f.getName());
+				if (codeMatch.find()) {
+					Integer id = new Integer(codeMatch.group(1));
+					codeMap.put(id, codeMatch.group(2));
+				}
+			}	
+		}
+				
+		return codeMap;
+		
+	}
+	
+	
 	// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 	// VPDMf functions
 	// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -237,16 +356,7 @@ public class TriageEngine extends DigitalLibraryEngine {
 		
 	}
 
-	public void populateArticleTriageCorpus(String triageCorpus, 
-			String targetCorpus, 
-			Map<Integer, String> inOutCodes)
-			throws Exception {
-
-		this.exTriageDao.addTriageDocumentsToCorpus(triageCorpus, targetCorpus, inOutCodes);
-
-	}
-
-	public void updateInScore(long vpdmfId, float inScore) throws Exception {
+	public void updateInScore(long vpdmfId, float inScore, Date timestamp) throws Exception {
 		
 		TriageScore td =  this.triageDao.findTriagedArticleById(vpdmfId);
 	
@@ -256,10 +366,13 @@ public class TriageEngine extends DigitalLibraryEngine {
 		} 
 		
 		td.setInScore(inScore);
+		td.setScoredTimestamp(timestamp);
 		
 		getExTriageDao().updateTriagedArticle(td);
 
 	}
+	
+	
 
 
 }

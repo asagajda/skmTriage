@@ -31,16 +31,13 @@ public class BuildTriageCorpusFromPdfDir {
 
 	private static Logger logger = Logger.getLogger(BuildTriageCorpusFromPdfDir.class);
 	
-	private static Pattern pmidPatt = Pattern.compile("^(\\d+).*\\.pdf$");	
-	private static Pattern noCodePatt = Pattern.compile("^(\\d+)\\.pdf$");
-	private static Pattern codePatt = Pattern.compile("^(\\d+)_(.*)\\.pdf$");
 	
 	public static class Options {
 
 		@Option(name = "-pdfs", usage = "Pdfs directory or file", required = true, metaVar = "PDF-DIR-OR-FILE")
 		public File pdfFileOrDir;
 
-		@Option(name = "-corpus", usage = "Corpus name", required = true, metaVar = "CORPUS")
+		@Option(name = "-triageCorpus", usage = "Triage Corpus name", required = true, metaVar = "CORPUS")
 		public String corpusName;
 		
 		@Option(name = "-rules", usage = "Rules file", required = false, metaVar = "FILE")
@@ -96,53 +93,7 @@ public class BuildTriageCorpusFromPdfDir {
 				throw new Exception("TriageCorpus " + options.corpusName + " does not exist.");
 			}
 			
-			Map<Integer,Long> pmidMap1 = te.insertPmidPdfFileOrDir(options.pdfFileOrDir);
-			
-			Map<Integer, String> codeList = compileCodeList(options);
-			
-			Corpus_qo cq = new Corpus_qo();
-			List<LightViewInstance> cList = te.getDigLibDao().getCoreDao().list(cq, "ArticleCorpus");
-			for( LightViewInstance lvi : cList ) {
-				Corpus c = te.getCitDao().getCoreDao().findById(lvi.getVpdmfId(), new Corpus(), "Corpus");
-				if( c.getRegex() == null )
-					continue;
-
-				// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-				// Are there any codes assigned? If so, we assume that 
-				// ALL PAPERS IN THE COLLECTION ARE 'IN' OR 'OUT'
-				// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-				boolean allInOut = false;
-				for( String s : codeList.values() ) {
-					if( s.length() > 0 ) {
-						allInOut = true;
-						break;
-					}
-				}
-				
-				if( allInOut ) {
-					logger.info("ASSUMING THAT ALL DOCUMENTS ARE CLASSIFED");
-				} else {
-					logger.info("ASSUMING THAT ALL DOCUMENTS ARE UNCLASSIFED");
-				}
-				
-				Map<Integer,String> pmidCodes = new HashMap<Integer,String>();
-				for( Integer pmid: codeList.keySet() ) {
-					String code = codeList.get(pmid);
-					if( !allInOut ) {
-						pmidCodes.put(pmid, TriageCode.UNCLASSIFIED);
-					}
-					else {
-						if( code.contains(c.getRegex()) ) {
-							pmidCodes.put(pmid, TriageCode.IN);
-						} else { 
-							pmidCodes.put(pmid, TriageCode.OUT);
-						}
-					}
-				}
-			
-				te.populateArticleTriageCorpus(tc.getName(), c.getName(), pmidCodes);
-				
-			}
+			te.buildTriageCorpusFromPdfFileOrDir(tc, options.pdfFileOrDir, options.codeList);
 			
 		} catch (CmdLineException e) {
 			
@@ -158,53 +109,5 @@ public class BuildTriageCorpusFromPdfDir {
 
 	}
 	
-	private static Map<Integer, String> compileCodeList(Options options) throws Exception {
-		Map<Integer, String> codeList = new HashMap<Integer, String>();
-		
-		List<File> pdfList = new ArrayList<File>(
-				Converters.recursivelyListFiles(options.pdfFileOrDir).values()
-				);
-		for( File f : pdfList ) {
-			Matcher m = pmidPatt.matcher(f.getName());
-			if (m.find()) {
-				Integer id = new Integer(m.group(1));
-				codeList.put(id, "");
-			}
-		}
-		
-		if (options.codeList != null) {
-			FileInputStream fis = new FileInputStream(options.codeList);
-			BufferedReader br = new BufferedReader(new InputStreamReader(fis, Charset.forName("UTF-8")));
-			String line = "";
-			while ((line = br.readLine()) != null) {
-				Matcher noCodeMatch = noCodePatt.matcher(line);
-				if (noCodeMatch.find()) {
-					Integer id = new Integer(noCodeMatch.group(1));
-					codeList.put(id, "");
-				}
-				Matcher codeMatch = codePatt.matcher(line);
-				if (codeMatch.find()) {
-					Integer id = new Integer(codeMatch.group(1));
-					codeList.put(id, codeMatch.group(2));
-				}
-			}
-		} else {
-			for( File f : pdfList ) {
-				Matcher noCodeMatch = noCodePatt.matcher(f.getName());
-				if (noCodeMatch.find()) {
-					Integer id = new Integer(noCodeMatch.group(1));
-					codeList.put(id, "");
-				}
-				Matcher codeMatch = codePatt.matcher(f.getName());
-				if (codeMatch.find()) {
-					Integer id = new Integer(codeMatch.group(1));
-					codeList.put(id, codeMatch.group(2));
-				}
-			}	
-		}
-				
-		return codeList;
-		
-	}
 
 }

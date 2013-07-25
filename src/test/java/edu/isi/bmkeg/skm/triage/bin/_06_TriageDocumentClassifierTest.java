@@ -28,7 +28,7 @@ ApplicationContext ctx;
 	
 	String login, password, dbUrl;
 	String triageCorpusName, targetCorpusName;
-	File archiveFile, pmidFile_allChecked, triageCodes, pdfDir, outDir;
+	File archiveFile, pmidFile_allChecked, triageCodes, pdfDir, pdfDir2, outDir;
 	VPDMfKnowledgeBaseBuilder builder;
 	
 	VpdmfCitationsDao dao;
@@ -56,14 +56,13 @@ ApplicationContext ctx;
 		outDir = new File("target");
 		
 		File pdf1 = ctx.getResource(
-				"classpath:edu/isi/bmkeg/skm/triage/mgi/pdfs/19763139_A.pdf").getFile();
-
+				"classpath:edu/isi/bmkeg/skm/triage/small/pdfs/19763139_A.pdf").getFile();
 		pdfDir = pdf1.getParentFile();
-		if( !pdfDir.exists() ) {
-			throw new Exception("WorkingDirectory:" + pdfDir.getPath() + "/pdf does not exist");
-		}
-		
-		triageCodes = new File(pdfDir.getParent() + "/testCodes.txt");
+		triageCodes = new File(pdfDir.getParent() + "/triageCodes.txt");
+
+		File pdf2 = ctx.getResource(
+				"classpath:edu/isi/bmkeg/skm/triage/small3/pdfs/21884797.pdf").getFile();
+		pdfDir2 = pdf2.getParentFile();
 
 		builder = new VPDMfKnowledgeBaseBuilder(archiveFile, 
 				login, password, dbUrl); 
@@ -83,22 +82,20 @@ ApplicationContext ctx;
 		
 		builder.buildDatabaseFromArchive();
 				
-		triageCorpusName = "TriageCorpus";
-		
 		String[] args = new String[] { 
-				"-name", triageCorpusName, 
+				"-name", "GO", 
 				"-desc", "Test triage corpus", 
+				"-regex", "G", 
 				"-owner", "Gully Burns",
 				"-db", dbUrl, 
 				"-l", login, 
 				"-p", password 
 				};
 
-		EditTriageCorpus.main(args);
+		EditArticleCorpus.main(args);
 
-		targetCorpusName = "AP";
 		args = new String[] { 
-				"-name", targetCorpusName, 
+				"-name", "AP", 
 				"-desc", "Test target corpus", 
 				"-regex", "A", 
 				"-owner", "Gully Burns",
@@ -109,10 +106,22 @@ ApplicationContext ctx;
 
 		EditArticleCorpus.main(args);
 
+		triageCorpusName = "triageCorpus1";
+		args = new String[] { 
+				"-name", triageCorpusName, 
+				"-desc", "Test target corpus", 
+				"-owner", "Gully Burns",
+				"-db", dbUrl, 
+				"-l", login, 
+				"-p", password 
+				};
+
+		EditTriageCorpus.main(args);
+
+		
 		args = new String[] { 
 				"-pdfs", pdfDir.getPath(), 
-				"-corpus", triageCorpusName, 
-				"-codeList", triageCodes.getPath(), 
+				"-triageCorpus", triageCorpusName, 
 				"-db", dbUrl, 
 				"-l", login, 
 				"-p", password
@@ -120,6 +129,15 @@ ApplicationContext ctx;
 
 		BuildTriageCorpusFromPdfDir.main(args);
 		
+		args = new String[] { 
+				"-pdfs", pdfDir2.getPath(), 
+				"-triageCorpus", triageCorpusName, 
+				"-db", dbUrl, 
+				"-l", login, 
+				"-p", password
+				};
+
+		BuildTriageCorpusFromPdfDir.main(args);		
 	}
 
 	@After
@@ -132,6 +150,7 @@ ApplicationContext ctx;
 	@Test
 	public final void testTriageDocumentsClassifier() throws Exception {
 
+		targetCorpusName = "AP";
 		String[] args = new String[] {
 				"-train",
 				"-triageCorpus", triageCorpusName, 
@@ -149,8 +168,8 @@ ApplicationContext ctx;
 		args[0] = "-predict";
 
 		TriageDocumentsClassifier.main(args);
-
-						
+				
+		Assert.assertTrue(true);
 	}
 
 	@Test
@@ -184,8 +203,7 @@ ApplicationContext ctx;
 				
 			
 		}
-
-						
+		
 	}
 
 }

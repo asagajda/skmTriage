@@ -72,7 +72,7 @@ public class BuildTriageCorpusFromMedlineQuery {
 			pmidCodes.put(pmid, TriageCode.UNCLASSIFIED);
 		}
 
-		te.populateArticleTriageCorpus(triageCorpus, targetCorpus, pmidCodes);
+		te.getExTriageDao().addTriageDocumentsToCorpus(triageCorpus, targetCorpus, pmidCodes);
 
 	}
 

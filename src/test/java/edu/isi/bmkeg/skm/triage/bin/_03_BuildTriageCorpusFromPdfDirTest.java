@@ -3,6 +3,8 @@ package edu.isi.bmkeg.skm.triage.bin;
 import java.io.File;
 import java.sql.SQLException;
 
+import junit.framework.Assert;
+
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -11,9 +13,9 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
-import edu.isi.bmkeg.digitalLibrary.bin.AddPmidEncodedPdfsToCorpus;
 import edu.isi.bmkeg.digitalLibrary.bin.EditArticleCorpus;
 import edu.isi.bmkeg.digitalLibrary.dao.vpdmf.VpdmfCitationsDao;
+import edu.isi.bmkeg.skm.triage.controller.TriageEngine;
 import edu.isi.bmkeg.utils.springContext.AppContext;
 import edu.isi.bmkeg.utils.springContext.BmkegProperties;
 import edu.isi.bmkeg.vpdmf.controller.VPDMfKnowledgeBaseBuilder;
@@ -26,9 +28,9 @@ public class _03_BuildTriageCorpusFromPdfDirTest {
 	
 	String login, password, dbUrl;
 	String corpusName;
-	File archiveFile, pmidFile_allChecked, triageCodes, pdfDir;
+	File archiveFile, pmidFile_allChecked, triageCodes, pdfDir, pdfDir2;
 	VPDMfKnowledgeBaseBuilder builder;
-	
+	TriageEngine te;
 	VpdmfCitationsDao dao;
 	
 	String queryString;
@@ -52,15 +54,14 @@ public class _03_BuildTriageCorpusFromPdfDirTest {
 				"classpath:edu/isi/bmkeg/skm/triage/triage-mysql.zip").getFile();
 
 		File pdf1 = ctx.getResource(
-				"classpath:edu/isi/bmkeg/skm/triage/mgi/pdfs/19763139_A.pdf").getFile();
-
+				"classpath:edu/isi/bmkeg/skm/triage/small/pdfs/19763139_A.pdf").getFile();
 		pdfDir = pdf1.getParentFile();
-		if( !pdfDir.exists() ) {
-			throw new Exception("WorkingDirectory:" + pdfDir.getPath() + "/pdf does not exist");
-		}
-		
-		triageCodes = new File(pdfDir.getParent() + "/testCodes.txt");
-		
+		triageCodes = new File(pdfDir.getParent() + "/triageCodes.txt");
+
+		File pdf2 = ctx.getResource(
+				"classpath:edu/isi/bmkeg/skm/triage/small3/pdfs/21884797.pdf").getFile();
+		pdfDir2 = pdf2.getParentFile();
+
 		builder = new VPDMfKnowledgeBaseBuilder(archiveFile, 
 				login, password, dbUrl); 
 
@@ -78,13 +79,28 @@ public class _03_BuildTriageCorpusFromPdfDirTest {
 		} 
 		
 		builder.buildDatabaseFromArchive();
-				
+
+		te = new TriageEngine();
+		te.initializeVpdmfDao(login, password, dbUrl);
+		
 		corpusName = "TriageCorpus";
 
 		String[] args = new String[] { 
 				"-name", "AP", 
-				"-desc", "Test article corpus",  
+				"-desc", "Test AP article corpus",  
 				"-regex", "A", 
+				"-owner", "Gully Burns",
+				"-db", dbUrl, 
+				"-l", login, 
+				"-p", password 
+				};
+
+		EditArticleCorpus.main(args);
+		
+		args = new String[] { 
+				"-name", "GO", 
+				"-desc", "Test GO article corpus",  
+				"-regex", "G", 
 				"-owner", "Gully Burns",
 				"-db", dbUrl, 
 				"-l", login, 
@@ -113,27 +129,29 @@ public class _03_BuildTriageCorpusFromPdfDirTest {
 		
 	}
 	
-	/*@Test
+	@Test
 	public final void testBuildTriageCorpusFromFileNames() throws Exception {
 
 		String[] args = new String[] { 
 				"-pdfs", pdfDir.getPath(), 
-				"-corpus", corpusName, 
+				"-triageCorpus", corpusName, 
 				"-db", dbUrl, 
 				"-l", login, 
 				"-p", password
 				};
 
 		BuildTriageCorpusFromPdfDir.main(args);
-										
-	}*/
+		
+		int count = te.getCitDao().getCoreDao().countView("TriageScore");
+		Assert.assertEquals(10, count);
+	}
 		
 	@Test
 	public final void testBuildTriageCorpusFromCodeFile() throws Exception {
 
 		String[] args = new String[] { 
 				"-pdfs", pdfDir.getPath(), 
-				"-corpus", corpusName, 
+				"-triageCorpus", corpusName, 
 				"-codeList", triageCodes.getPath(), 
 				"-db", dbUrl, 
 				"-l", login, 
@@ -141,7 +159,40 @@ public class _03_BuildTriageCorpusFromPdfDirTest {
 				};
 
 		BuildTriageCorpusFromPdfDir.main(args);
-										
+
+		int count = te.getCitDao().getCoreDao().countView("TriageScore");
+		Assert.assertEquals(10, count);
+
 	}
+	
+	@Test
+	public final void testBuildTwoStageTriageCorpusBuild() throws Exception {
+
+		String[] args = new String[] { 
+				"-pdfs", pdfDir.getPath(), 
+				"-triageCorpus", corpusName, 
+				"-codeList", triageCodes.getPath(), 
+				"-db", dbUrl, 
+				"-l", login, 
+				"-p", password
+				};
+
+		BuildTriageCorpusFromPdfDir.main(args);
+
+		args = new String[] { 
+				"-pdfs", pdfDir2.getPath(), 
+				"-triageCorpus", corpusName, 
+				"-db", dbUrl, 
+				"-l", login, 
+				"-p", password
+				};
+
+		BuildTriageCorpusFromPdfDir.main(args);
+
+		int count = te.getCitDao().getCoreDao().countView("TriageScore");
+		Assert.assertEquals(16, count);
+
+	}
+
 }
 
