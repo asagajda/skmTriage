@@ -174,7 +174,8 @@ ApplicationContext ctx;
 
 	@Test
 	public final void testTriageDocumentsClassifierAllTriageCorpora() throws Exception {
-
+		
+		targetCorpusName = "AP";
 		String origUserHomeProp = System.getProperty("user.home");
 		
 		try {
