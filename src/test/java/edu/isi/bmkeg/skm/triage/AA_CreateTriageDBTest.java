@@ -19,6 +19,10 @@ import edu.isi.bmkeg.utils.springContext.AppContext;
 import edu.isi.bmkeg.utils.springContext.BmkegProperties;
 import edu.isi.bmkeg.vpdmf.controller.VPDMfKnowledgeBaseBuilder;
 
+/**
+ * This unit test generates a populated testing DB used by other unit tests
+ * and hast to be executed before them.
+ */
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(locations={ "/edu/isi/bmkeg/skm/triage/appCtx-VPDMfTest.xml"})
 public class AA_CreateTriageDBTest {
