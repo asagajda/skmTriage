@@ -1,6 +1,6 @@
 package edu.isi.bmkeg.skm.triage.bin;
 
-import java.sql.ResultSet;
+import java.util.List;
 
 import org.apache.log4j.Logger;
 import org.cleartk.util.Options_ImplBase;
@@ -9,16 +9,18 @@ import org.kohsuke.args4j.CmdLineParser;
 import org.kohsuke.args4j.Option;
 
 import edu.isi.bmkeg.digitalLibrary.controller.DigitalLibraryEngine;
+import edu.isi.bmkeg.triage.model.qo.TriageCorpus_qo;
 import edu.isi.bmkeg.vpdmf.controller.queryEngineTools.ChangeEngine;
 import edu.isi.bmkeg.vpdmf.dao.CoreDao;
 import edu.isi.bmkeg.vpdmf.model.definitions.VPDMf;
+import edu.isi.bmkeg.vpdmf.model.instances.LightViewInstance;
 
-public class DeleteTriageCorpus {
+public class DeleteTargetCorpus {
 
 	public static class Options extends Options_ImplBase {
 
-		@Option(name = "-triageCorpus", usage = "Triage Corpus Name", required = true, metaVar = "TRIAGE")
-		public String triageCorpus = "";
+		@Option(name = "-targetCorpus", usage = "Target Corpus Name", required = true, metaVar = "TARGET")
+		public String targetCorpus = "";
 
 		@Option(name = "-l", usage = "Database login", required = true, metaVar = "LOGIN")
 		public String login = "";
@@ -31,7 +33,7 @@ public class DeleteTriageCorpus {
 
 	}
 
-	private static Logger logger = Logger.getLogger(DeleteTriageCorpus.class);
+	private static Logger logger = Logger.getLogger(DeleteTargetCorpus.class);
 
 	private VPDMf top;
 
@@ -75,32 +77,22 @@ public class DeleteTriageCorpus {
 			ce.turnOffAutoCommit();
 
 			// Really bare-bones implementation of this.
-			
 			String sql = "DELETE ts.*, vt.* " +
 					"FROM TriageScore AS ts, " + 
 					" ViewTable AS vt, " +
-					" Corpus AS triagec " +
-					"WHERE vt.vpdmfId = ts.vpdmfId " +
-					"  AND ts.triageCorpus_id = triagec.vpdmfId " +
-					"  AND triagec.name = '" + options.triageCorpus + "';";
-
+					" Corpus AS targetc " +
+					"WHERE vt.vpdmfId = ts.vpdmfId " +	
+					"  AND ts.targetCorpus_id = targetc.vpdmfId " +
+					"  AND targetc.name = '" + options.targetCorpus + "';";
+	
 			ce.executeRawUpdateQuery(sql);
 			ce.prettyPrintSQL(sql);
-			
-			// Weird error, seems to run into a foreign key 
-			// constraint error between the Corpus and TriageCorpus
-			sql = "DELETE tc.* " +
-					 "FROM Corpus AS c, " +
-					 " TriageCorpus AS tc " +
-					 "WHERE tc.vpdmfId = c.vpdmfId " +
-					 "  AND c.name = '" + options.triageCorpus + "';";
-			ce.executeRawUpdateQuery(sql);
-			
-			sql = "DELETE c.*, vt.* " +
+
+			sql = "DELETE targetc.*, vt.* " +
 					 "FROM ViewTable AS vt, " +
-					 " Corpus AS c " +
-					 "WHERE vt.vpdmfId = c.vpdmfId " +
-					 "  AND c.name = '" + options.triageCorpus + "';";
+						" Corpus AS targetc " +
+					 "WHERE vt.vpdmfId = targetc.vpdmfId " +
+					 "  AND targetc.name = '" + options.targetCorpus + "';";
 
 			ce.executeRawUpdateQuery(sql);
 			ce.prettyPrintSQL(sql);
@@ -111,7 +103,7 @@ public class DeleteTriageCorpus {
 
 			ce.rollbackTransaction();
 			throw e;
-		
+
 		} finally {
 
 			ce.closeDbConnection();

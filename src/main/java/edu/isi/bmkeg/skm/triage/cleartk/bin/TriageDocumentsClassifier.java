@@ -147,7 +147,6 @@ public class TriageDocumentsClassifier {
 			CatorgorizedFtdText document = JCasUtil.selectSingle(jCas,
 					CatorgorizedFtdText.class);
 			
-			
 			TriageScore tdoc = JCasUtil.selectSingle(jCas, TriageScore.class);
 			long triageDocId = tdoc.getVpdmfId();
 			

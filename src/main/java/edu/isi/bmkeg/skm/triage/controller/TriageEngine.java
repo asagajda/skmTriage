@@ -6,7 +6,9 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.InputStreamReader;
 import java.nio.charset.Charset;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -33,17 +35,19 @@ import edu.isi.bmkeg.triage.dao.impl.TriageDaoImpl;
 import edu.isi.bmkeg.triage.model.TriageCorpus;
 import edu.isi.bmkeg.triage.model.TriageScore;
 import edu.isi.bmkeg.utils.Converters;
+import edu.isi.bmkeg.vpdmf.controller.queryEngineTools.ChangeEngine;
 import edu.isi.bmkeg.vpdmf.dao.CoreDao;
+import edu.isi.bmkeg.vpdmf.model.definitions.VPDMf;
+import edu.isi.bmkeg.vpdmf.model.definitions.ViewDefinition;
+import edu.isi.bmkeg.vpdmf.model.instances.AttributeInstance;
 import edu.isi.bmkeg.vpdmf.model.instances.LightViewInstance;
+import edu.isi.bmkeg.vpdmf.model.instances.ViewInstance;
 
 
 public class TriageEngine extends DigitalLibraryEngine {
 
 	private static Logger logger = Logger.getLogger(TriageEngine.class);
 
-	private static Pattern pmidPatt = Pattern.compile("^(\\d+).*\\.pdf$");	
-	private static Pattern noCodePatt = Pattern.compile("^(\\d+)\\.pdf$");
-	private static Pattern codePatt = Pattern.compile("^(\\d+)_(.*)\\.pdf$");
 	
 	private TriageDaoEx exTriageDao;
 
@@ -82,10 +86,80 @@ public class TriageEngine extends DigitalLibraryEngine {
 	public void buildTriageCorpusFromPdfFileOrDir(TriageCorpus tc, 
 			File pdfFileOrDir, File codeFile) throws Exception {
 
-		Map<Integer,Long> pmidMap1 = this.insertPmidPdfFileOrDir(pdfFileOrDir);
+		this.insertPmidPdfFileOrDir(pdfFileOrDir);
 		
-		Map<Integer, String> codeList = this.compileCodeList(pdfFileOrDir, codeFile);
+		Map<Integer, String> codeList = this.compileCodeList(pdfFileOrDir);
+		if( codeFile != null )
+			codeList.putAll( this.compileCodeList(codeFile) );
 		
+		this.addCodeListToCorpus(tc, codeList);
+		
+	}
+
+	public void buildTriageCorpusFromCodeFile(TriageCorpus tc, File codeFile) throws Exception {
+
+		Map<Integer, String> codeList = this.compileCodeList(codeFile);
+		
+		this.addCodeListToCorpus(tc, codeList);
+		
+	}
+
+	public void deleteArticlesFromTriageCorpusBasedOnCodeFile(TriageCorpus tc, File codeFile) throws Exception {
+
+		Map<Integer, String> pmidCodes = this.compileCodeList(codeFile);
+
+		ChangeEngine ce = (ChangeEngine) this.getCitDao().getCoreDao().getCe();
+		
+		try {
+
+			ce.connectToDB();
+			ce.turnOffAutoCommit();
+
+			List<Integer> pmids = new ArrayList<Integer>(pmidCodes.keySet());
+			int nRowsChanged = 0;
+			Collections.sort(pmids);
+			Iterator<Integer> it = pmids.iterator();
+			while (it.hasNext()) {
+				Integer pmid = it.next();
+
+				String sql = "DELETE ts.*, vt.* " +
+							 "FROM TriageScore AS ts, " + 
+							 " ViewTable AS vt, " +
+							 " LiteratureCitation AS litcit, " +
+							 " ArticleCitation AS artcit, " +
+							 " Corpus AS triagec " +
+							 "WHERE vt.vpdmfId = ts.vpdmfId " +
+							 "  AND ts.citation_id = litcit.vpdmfId " +		
+							 "  AND litcit.vpdmfId = artcit.vpdmfId " +		
+							 "  AND artcit.pmid = '" + pmid + "'" +		
+							 "  AND ts.triageCorpus_id = triagec.vpdmfId " +
+							 "  AND triagec.name = '" + tc.getName() + "';";
+									
+				nRowsChanged += ce.executeRawUpdateQuery(sql);
+				
+				ce.prettyPrintSQL(sql);
+				
+			}
+
+			ce.commitTransaction();
+			logger.info(nRowsChanged + " rows altered.");
+
+		} catch (Exception e) {
+
+			ce.commitTransaction();
+			e.printStackTrace();
+
+		} finally {
+
+			ce.closeDbConnection();
+
+		}
+		
+	}
+	
+	
+	private void addCodeListToCorpus(TriageCorpus tc, Map<Integer, String> codeList) throws Exception {
+	
 		Corpus_qo cq = new Corpus_qo();
 		List<LightViewInstance> cList = this.getDigLibDao().getCoreDao().list(cq, "ArticleCorpus");
 		for( LightViewInstance lvi : cList ) {
@@ -132,22 +206,40 @@ public class TriageEngine extends DigitalLibraryEngine {
 	}
 	
 
-	private Map<Integer, String> compileCodeList(File pdfFileOrDir, File codeFile ) throws Exception {
+	private Map<Integer, String> compileCodeList(File inputFile) throws Exception {
 		Map<Integer, String> codeMap = new HashMap<Integer, String>();
 		
-		List<File> pdfList = new ArrayList<File>(
-				Converters.recursivelyListFiles(pdfFileOrDir).values()
-				);
-		for( File f : pdfList ) {
-			Matcher m = pmidPatt.matcher(f.getName());
+		Pattern pmidPatt = Pattern.compile("^(\\d+).*\\.pdf$");	
+		Pattern noCodePatt = Pattern.compile("^(\\d+)\\.pdf$");
+		Pattern codePatt = Pattern.compile("^(\\d+)_(.*)\\.pdf$");
+		
+		// if file is a PDF (*.pdf), process the file name.
+		// if file is a directory, process the file names.
+		// if file is a text file (*.txt) process the contents.
+		
+		if( inputFile.getName().endsWith(".pdf") && !inputFile.isDirectory() ) {
+			
+			Matcher m = pmidPatt.matcher(inputFile.getName());
 			if (m.find()) {
 				Integer id = new Integer(m.group(1));
 				codeMap.put(id, "");
 			}
-		}
-		
-		if (codeFile != null) {
-			FileInputStream fis = new FileInputStream(codeFile);
+			
+			Matcher noCodeMatch = noCodePatt.matcher(inputFile.getName());
+			if (noCodeMatch.find()) {
+				Integer id = new Integer(noCodeMatch.group(1));
+				codeMap.put(id, "");
+			}
+			
+			Matcher codeMatch = codePatt.matcher(inputFile.getName());
+			if (codeMatch.find()) {
+				Integer id = new Integer(codeMatch.group(1));
+				codeMap.put(id, codeMatch.group(2));
+			}
+			
+		} else if( inputFile.getName().endsWith(".txt") && !inputFile.isDirectory() ) {
+			
+			FileInputStream fis = new FileInputStream(inputFile);
 			BufferedReader br = new BufferedReader(new InputStreamReader(fis, Charset.forName("UTF-8")));
 			String line = "";
 			while ((line = br.readLine()) != null) {
@@ -162,7 +254,20 @@ public class TriageEngine extends DigitalLibraryEngine {
 					codeMap.put(id, codeMatch.group(2));
 				}
 			}
-		} else {
+
+		} else if( inputFile.isDirectory() ) {
+
+			List<File> pdfList = new ArrayList<File>(
+					Converters.recursivelyListFiles(inputFile).values()
+					);
+			for( File f : pdfList ) {
+				Matcher m = pmidPatt.matcher(f.getName());
+				if (m.find()) {
+					Integer id = new Integer(m.group(1));
+					codeMap.put(id, "");
+				}
+			}
+
 			for( File f : pdfList ) {
 				Matcher noCodeMatch = noCodePatt.matcher(f.getName());
 				if (noCodeMatch.find()) {
@@ -175,12 +280,16 @@ public class TriageEngine extends DigitalLibraryEngine {
 					codeMap.put(id, codeMatch.group(2));
 				}
 			}	
+
+		} else {
+		
+			throw new Exception("Not sure what sort of file this is: " + inputFile.getPath() );
+		
 		}
-				
+
 		return codeMap;
 		
 	}
-	
 	
 	// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 	// VPDMf functions

@@ -66,7 +66,7 @@ public class ReportCorpusCounts  {
 			List<LightViewInstance> cList = dao.list(qo, "Corpus");			
 			for( LightViewInstance lvi : cList) {
 			
-				if( lvi.getDefName().equals("TriageCorpus") ) {
+				if( lvi.getDefName().contains("TriageCorpus") ) {
 					triageCorpora.put(lvi.getVpdmfId(), lvi.getVpdmfLabel());
 				} else {
 					corpora.put(lvi.getVpdmfId(), lvi.getVpdmfLabel());
@@ -75,38 +75,45 @@ public class ReportCorpusCounts  {
 			}
 
 			Iterator<Long> targetIdIt = corpora.keySet().iterator();
-			Long firstTargetId = targetIdIt.next();
-			for( Long triageId : triageCorpora.keySet() ) {
+			if( targetIdIt.hasNext() ) {
+				Long firstTargetId = targetIdIt.next();
 
-				TriageScore_qo tsQo = new TriageScore_qo();
-				TriageCorpus_qo tcQo = new TriageCorpus_qo();
-				tcQo.setVpdmfId(triageId + "");
-				tsQo.setTriageCorpus(tcQo);
-				Corpus_qo cQo = new Corpus_qo();
-				cQo.setVpdmfId(firstTargetId + "");
-				tsQo.setTargetCorpus(cQo);
+				for( Long triageId : triageCorpora.keySet() ) {
+	
+					TriageScore_qo tsQo = new TriageScore_qo();
+					TriageCorpus_qo tcQo = new TriageCorpus_qo();
+					tcQo.setVpdmfId(triageId + "");
+					tsQo.setTriageCorpus(tcQo);
+					Corpus_qo cQo = new Corpus_qo();
+					cQo.setVpdmfId(firstTargetId + "");
+					tsQo.setTargetCorpus(cQo);
+					
+					int c = dao.countView(tsQo, "TriageScore");
+					counts.put(triageId, c);
 				
-				int c = dao.countView(tsQo, "TriageScore");
-				counts.put(triageId, c);
+				}
 			
 			}
 				
 			Iterator<Long> triageIdIt = triageCorpora.keySet().iterator();
-			Long firstTriageId = triageIdIt.next();
-			for( Long targetId : corpora.keySet() ) {
-
-				TriageScore_qo tsQo = new TriageScore_qo();
-				tsQo.setInOutCode("in");
-				TriageCorpus_qo tcQo = new TriageCorpus_qo();
-				tcQo.setVpdmfId(firstTriageId + "");
-				tsQo.setTriageCorpus(tcQo);
-				Corpus_qo cQo = new Corpus_qo();
-				cQo.setVpdmfId(targetId + "");
-				tsQo.setTargetCorpus(cQo);
-				
-				int c = dao.countView(tsQo, "TriageScore");
-				counts.put(targetId, c);
+			if( triageIdIt.hasNext() ) {
+				Long firstTriageId = triageIdIt.next();
 			
+				for( Long targetId : corpora.keySet() ) {
+
+					TriageScore_qo tsQo = new TriageScore_qo();
+					tsQo.setInOutCode("in");
+					TriageCorpus_qo tcQo = new TriageCorpus_qo();
+					tcQo.setVpdmfId(firstTriageId + "");
+					tsQo.setTriageCorpus(tcQo);
+					Corpus_qo cQo = new Corpus_qo();
+					cQo.setVpdmfId(targetId + "");
+					tsQo.setTargetCorpus(cQo);
+					
+					int c = dao.countView(tsQo, "TriageScore");
+					counts.put(targetId, c);
+				
+				}
 			}
 			
 			System.out.println("\nSciKnowMine Triage Corpus Counts");
@@ -125,7 +132,8 @@ public class ReportCorpusCounts  {
 				Integer c = counts.get(id);
 				System.out.println(c + "	" + name );
 			}
-
+		
+			
 		} catch (CmdLineException e) {
 
 			System.err.println(e.getMessage());
