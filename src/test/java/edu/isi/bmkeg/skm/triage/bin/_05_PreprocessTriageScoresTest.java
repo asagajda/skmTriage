@@ -109,7 +109,7 @@ ApplicationContext ctx;
 
 		args = new String[] { 
 				"-pdfs", pdfDir.getPath(), 
-				"-corpus", triageCorpusName, 
+				"-triageCorpus", triageCorpusName, 
 				"-codeList", triageCodes.getPath(), 
 				"-db", dbUrl, 
 				"-l", login, 

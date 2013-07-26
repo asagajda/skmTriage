@@ -155,7 +155,7 @@ public class AA_CreateTriageDBTest {
 
 		args = new String[] { 
 				"-pdfs", pdfDir.getPath(), 
-				"-corpus", triageCorpusName, 
+				"-triageCorpus", triageCorpusName, 
 				"-codeList", triageCodes.getPath(), 
 				"-db", dbUrl, 
 				"-l", login, 
@@ -166,7 +166,7 @@ public class AA_CreateTriageDBTest {
 		
 		args = new String[] { 
 				"-pdfs", pdfDir2.getPath(), 
-				"-corpus", triageCorpusName2, 
+				"-triageCorpus", triageCorpusName2, 
 				"-db", dbUrl, 
 				"-l", login, 
 				"-p", password
@@ -176,7 +176,7 @@ public class AA_CreateTriageDBTest {
 		
 		args = new String[] { 
 				"-pdfs", pdfDir3.getPath(), 
-				"-corpus", triageCorpusName3, 
+				"-triageCorpus", triageCorpusName3, 
 				"-db", dbUrl, 
 				"-l", login, 
 				"-p", password

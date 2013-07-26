@@ -36,7 +36,7 @@ public class _08_RunDeletionFunctionsTest {
 	String queryString;
 	
 	// Cheat flag for debugging
-	private boolean rebuildDb = false;
+	private boolean rebuildDb = true;
 	
 	@Before
 	public void setUp() throws Exception {
@@ -158,7 +158,7 @@ public class _08_RunDeletionFunctionsTest {
 		
 	}
 		
-/*	@Test
+	@Test
 	public final void testDeleteTargetCorpus() throws Exception {
 
 		int c1 = te.getCitDao().getCoreDao().countView("TriagedArticle");
@@ -196,7 +196,7 @@ public class _08_RunDeletionFunctionsTest {
 		
 		Assert.assertEquals(16, c1);
 		Assert.assertEquals(0, c2);
-	}*/
+	}
 	
 	@Test
 	public final void testRunDeleteFromCodes() throws Exception {
@@ -216,7 +216,7 @@ public class _08_RunDeletionFunctionsTest {
 		int c2 = te.getCitDao().getCoreDao().countView("TriageScore");
 		
 		Assert.assertEquals(16, c1);
-		Assert.assertEquals(0, c2);
+		Assert.assertEquals(8, c2);
 	}
 		
 }
