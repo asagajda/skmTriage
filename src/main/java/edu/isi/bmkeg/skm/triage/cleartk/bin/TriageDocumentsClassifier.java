@@ -35,7 +35,7 @@ import edu.isi.bmkeg.triage.uimaTypes.TriageScore;
 
 public class TriageDocumentsClassifier {
 
-	public static class Options extends Options_ImplBase {
+	public static class Options {
 		
 		@Option(name = "-triageCorpus", usage = "The triage corpus to be evaluated. It is required if -predict is used.",
 				required = false, metaVar = "NAME")
@@ -221,11 +221,12 @@ public class TriageDocumentsClassifier {
 	public static void main(String[] args) throws Exception {
 
 		Options options = new Options();
+		CmdLineParser parser = new CmdLineParser(options);
 		
 		try {
-			options.parseOptions(args);
+			
+			parser.parseArgument(args);
 		 
-
 			boolean error = false;
 			
 			if (options.train && options.predict) {	
@@ -245,10 +246,10 @@ public class TriageDocumentsClassifier {
 			}
 			
 		} catch (Exception e) {
-			CmdLineParser parser = new CmdLineParser(options);
+
 			System.err.print("Usage: ");
 			parser.printSingleLineUsage(System.err);
-			System.err.println("\n Options: \n");
+			System.err.println("\n\n Options: \n");
 			parser.printUsage(System.err);
 			System.exit(-1);
 		}
