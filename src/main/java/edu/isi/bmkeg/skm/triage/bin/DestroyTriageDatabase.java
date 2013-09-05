@@ -43,8 +43,8 @@ public class DestroyTriageDatabase {
 			VPDMfKnowledgeBaseBuilder builder = new VPDMfKnowledgeBaseBuilder(buildFile, 
 					options.login, options.password, options.dbName); 
 			
-			if (builder.checkIfKbExists(options.dbName)) {
-				System.err.println("ERROR: Database " + options.dbName + " already exists.");
+			if (!builder.checkIfKbExists(options.dbName)) {
+				System.err.println("ERROR: Database " + options.dbName + " doesn't exist.");
 				System.exit(-1);
 			}
 			
