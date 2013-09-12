@@ -161,7 +161,7 @@ public class TriageEngine extends DigitalLibraryEngine {
 	private void addCodeListToCorpus(TriageCorpus tc, Map<Integer, String> codeList) throws Exception {
 	
 		Corpus_qo cq = new Corpus_qo();
-		List<LightViewInstance> cList = this.getDigLibDao().getCoreDao().list(cq, "ArticleCorpus");
+		List<LightViewInstance> cList = this.getDigLibDao().getCoreDao().list(cq, "Corpus");
 		for( LightViewInstance lvi : cList ) {
 			Corpus c = this.getCitDao().getCoreDao().findById(lvi.getVpdmfId(), new Corpus(), "Corpus");
 			if( c.getRegex() == null )
