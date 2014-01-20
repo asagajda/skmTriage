@@ -46,18 +46,15 @@ public class ReportCorpusCounts  {
 		Options options = new Options();
 
 		CmdLineParser parser = new CmdLineParser(options);
+		parser.parseArgument(args);
 
+		DigitalLibraryEngine de = new DigitalLibraryEngine();
+		de.initializeVpdmfDao(options.login, options.password, options.dbName);
+
+		CoreDao dao = de.getDigLibDao().getCoreDao();
+		
 		try {
-
-			parser.parseArgument(args);
-
-			DigitalLibraryEngine de = null;
-
-			de = new DigitalLibraryEngine();
-			de.initializeVpdmfDao(options.login, options.password, options.dbName);
-
-			CoreDao dao = de.getCitDao().getCoreDao();
-			
+						
 			Map<Long, Integer> counts = new HashMap<Long, Integer>();
 			Map<Long, String> corpora = new HashMap<Long, String>();
 			Map<Long, String> triageCorpora = new HashMap<Long, String>();
@@ -144,8 +141,8 @@ public class ReportCorpusCounts  {
 
 			System.exit(-1);
 
-		}
-
+		} 
+		
 	}
 
 }

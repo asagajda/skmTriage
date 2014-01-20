@@ -16,7 +16,6 @@ import edu.isi.bmkeg.triage.uimaTypes.TriageScore;
 
 public abstract class CategorizedFtdAnnotator extends CleartkAnnotator<Boolean> {
 
-	
 	static protected void scoredOutcomeToCategorizedFtdText(
 			boolean outcome,
 			List<ScoredOutcome<Boolean>> scores, 

@@ -14,8 +14,9 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 import edu.isi.bmkeg.digitalLibrary.bin.EditArticleCorpus;
-import edu.isi.bmkeg.digitalLibrary.dao.vpdmf.VpdmfCitationsDao;
+import edu.isi.bmkeg.digitalLibrary.dao.ExtendedDigitalLibraryDao;
 import edu.isi.bmkeg.skm.triage.controller.TriageEngine;
+import edu.isi.bmkeg.triage.model.qo.TriageScore_qo;
 import edu.isi.bmkeg.utils.springContext.AppContext;
 import edu.isi.bmkeg.utils.springContext.BmkegProperties;
 import edu.isi.bmkeg.vpdmf.controller.VPDMfKnowledgeBaseBuilder;
@@ -31,7 +32,7 @@ public class _08_RunDeletionFunctionsTest {
 	File archiveFile, pmidFile_allChecked, triageCodes, pdfDir, pdfDir2;
 	VPDMfKnowledgeBaseBuilder builder;
 	TriageEngine te;
-	VpdmfCitationsDao dao;
+	ExtendedDigitalLibraryDao dao;
 	
 	String queryString;
 	
@@ -161,7 +162,7 @@ public class _08_RunDeletionFunctionsTest {
 	@Test
 	public final void testDeleteTargetCorpus() throws Exception {
 
-		int c1 = te.getCitDao().getCoreDao().countView("TriagedArticle");
+		int c1 = te.getDigLibDao().getCoreDao().countView(new TriageScore_qo(), "TriagedArticle");
 
 		String[] args = new String[] { 
 				"-targetCorpus", "GO", 
@@ -172,7 +173,7 @@ public class _08_RunDeletionFunctionsTest {
 		
 		DeleteTargetCorpus.main(args);
 				
-		int c2 = te.getCitDao().getCoreDao().countView("TriagedArticle");
+		int c2 = te.getDigLibDao().getCoreDao().countView(new TriageScore_qo(), "TriagedArticle");
 		
 		Assert.assertEquals(16, c1);
 		Assert.assertEquals(8, c2);
@@ -181,7 +182,7 @@ public class _08_RunDeletionFunctionsTest {
 	@Test
 	public final void testDeleteTriageCorpus() throws Exception {
 
-		int c1 = te.getCitDao().getCoreDao().countView("TriageScore");
+		int c1 = te.getDigLibDao().getCoreDao().countView(new TriageScore_qo(), "TriageScore");
 
 		String[] args = new String[] { 
 				"-triageCorpus", corpusName, 
@@ -192,7 +193,7 @@ public class _08_RunDeletionFunctionsTest {
 		
 		DeleteTriageCorpus.main(args);
 				
-		int c2 = te.getCitDao().getCoreDao().countView("TriageScore");
+		int c2 = te.getDigLibDao().getCoreDao().countView(new TriageScore_qo(), "TriageScore");
 		
 		Assert.assertEquals(16, c1);
 		Assert.assertEquals(0, c2);
@@ -201,7 +202,7 @@ public class _08_RunDeletionFunctionsTest {
 	@Test
 	public final void testRunDeleteFromCodes() throws Exception {
 
-		int c1 = te.getCitDao().getCoreDao().countView("TriageScore");
+		int c1 = te.getDigLibDao().getCoreDao().countView(new TriageScore_qo(), "TriageScore");
 
 		String[] args = new String[] { 
 				"-triageCorpus", corpusName, 
@@ -212,9 +213,9 @@ public class _08_RunDeletionFunctionsTest {
 				};
 		
 		DeleteTriageScoresFromCodeFile.main(args);
-				
-		int c2 = te.getCitDao().getCoreDao().countView("TriageScore");
-		
+
+		int c2 = te.getDigLibDao().getCoreDao().countView(new TriageScore_qo(), "TriageScore");
+						
 		Assert.assertEquals(16, c1);
 		Assert.assertEquals(8, c2);
 	}

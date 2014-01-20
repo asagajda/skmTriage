@@ -65,7 +65,7 @@ public class DeleteTriageCorpus {
 		de = new DigitalLibraryEngine();
 		de.initializeVpdmfDao(options.login, options.password, options.dbName);
 
-		CoreDao dao = de.getCitDao().getCoreDao();
+		CoreDao dao = de.getDigLibDao().getCoreDao();
 		
 		ChangeEngine ce = (ChangeEngine) dao.getCe();
 

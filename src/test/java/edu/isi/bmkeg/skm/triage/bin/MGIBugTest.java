@@ -12,12 +12,11 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
-import edu.isi.bmkeg.digitalLibrary.bin.AddPmidEncodedPdfsToCorpus;
 import edu.isi.bmkeg.digitalLibrary.bin.EditArticleCorpus;
-import edu.isi.bmkeg.digitalLibrary.dao.vpdmf.VpdmfCitationsDao;
-import edu.isi.bmkeg.skm.triage.cleartk.bin.PreprocessTriageScores;
+import edu.isi.bmkeg.digitalLibrary.dao.ExtendedDigitalLibraryDao;
 import edu.isi.bmkeg.skm.triage.cleartk.bin.TriageDocumentsClassifier;
 import edu.isi.bmkeg.skm.triage.controller.TriageEngine;
+import edu.isi.bmkeg.triage.model.qo.TriageScore_qo;
 import edu.isi.bmkeg.utils.springContext.AppContext;
 import edu.isi.bmkeg.utils.springContext.BmkegProperties;
 import edu.isi.bmkeg.vpdmf.controller.VPDMfKnowledgeBaseBuilder;
@@ -32,7 +31,7 @@ ApplicationContext ctx;
 	File archiveFile, pmidFile_allChecked, triageCodes, pdfDir, pdfDir2, pdfDir3, outDir;
 	VPDMfKnowledgeBaseBuilder builder;
 	TriageEngine te;
-	VpdmfCitationsDao dao;
+	ExtendedDigitalLibraryDao dao;
 	
 	String queryString;
 	
@@ -150,7 +149,7 @@ ApplicationContext ctx;
 
 		BuildTriageCorpusFromPdfDir.main(args);
 
-		int count = te.getCitDao().getCoreDao().countView("TriageScore");
+		int count = te.getDigLibDao().getCoreDao().countView(new TriageScore_qo(), "TriageScore");
 		Assert.assertEquals(5, count);
 
 		// Train model
@@ -177,7 +176,7 @@ ApplicationContext ctx;
 
 		BuildTriageCorpusFromPdfDir.main(args);		
 		
-		count = te.getCitDao().getCoreDao().countView("TriageScore");
+		count = te.getDigLibDao().getCoreDao().countView(new TriageScore_qo(), "TriageScore");
 		Assert.assertEquals(8, count);
 
 		// Scores first triage corpus
@@ -219,9 +218,10 @@ ApplicationContext ctx;
 
 		BuildTriageCorpusFromPdfDir.main(args);
 
-		count = te.getCitDao().getCoreDao().countView("TriageScore");
+		count = te.getDigLibDao().getCoreDao().countView(new TriageScore_qo(), "TriageScore");
 		Assert.assertEquals(11, count);
 
 	}
+	
 }
 

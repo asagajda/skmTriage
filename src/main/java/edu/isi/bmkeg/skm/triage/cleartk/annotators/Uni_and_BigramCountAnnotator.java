@@ -39,7 +39,12 @@ import org.cleartk.classifier.feature.extractor.CleartkExtractor.Count;
 import org.cleartk.classifier.feature.extractor.CleartkExtractor.Covered;
 import org.cleartk.classifier.feature.extractor.CleartkExtractor.Ngrams;
 import org.cleartk.classifier.feature.extractor.simple.CoveredTextExtractor;
+import org.cleartk.classifier.feature.selection.MutualInformationFeatureSelectionExtractor;
+import org.cleartk.token.type.Sentence;
 import org.cleartk.token.type.Token;
+import org.uimafit.util.JCasUtil;
+
+import edu.isi.bmkeg.skm.cleartk.type.CatorgorizedFtdText;
 
 
 /**
@@ -58,8 +63,9 @@ import org.cleartk.token.type.Token;
 public class Uni_and_BigramCountAnnotator extends CategorizedFtdAnnotator {
 
 	private CleartkExtractor uniExtractor;
+	
 	private CleartkExtractor biExtractor;
-
+	
 	public void initialize(UimaContext context)
 			throws ResourceInitializationException {
 		super.initialize(context);
@@ -75,7 +81,7 @@ public class Uni_and_BigramCountAnnotator extends CategorizedFtdAnnotator {
 		        new CoveredTextExtractor(),
 		        new Ngrams(2, new Covered())
 		);
-	
+
 	}
 
 	public void process(JCas jCas) throws AnalysisEngineProcessException {
@@ -107,7 +113,7 @@ public class Uni_and_BigramCountAnnotator extends CategorizedFtdAnnotator {
 		}
 		
 		features.addAll( this.uniExtractor.extract(jCas, doc) );
-		
+				
 		if (isTraining()) {
 			
 			// during training, get the label for this 

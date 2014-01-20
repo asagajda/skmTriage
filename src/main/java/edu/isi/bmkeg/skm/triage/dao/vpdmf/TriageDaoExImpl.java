@@ -10,11 +10,13 @@ import java.util.Map;
 
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Repository;
+import org.springframework.web.context.WebApplicationContext;
 
 import edu.isi.bmkeg.skm.triage.dao.TriageDaoEx;
 import edu.isi.bmkeg.triage.model.TriageCorpus;
-import edu.isi.bmkeg.triage.model.TriageScore;
+import edu.isi.bmkeg.triage.model.qo.TriageCorpus_qo;
 import edu.isi.bmkeg.vpdmf.controller.queryEngineTools.ChangeEngine;
 import edu.isi.bmkeg.vpdmf.controller.queryEngineTools.VPDMfChangeEngineInterface;
 import edu.isi.bmkeg.vpdmf.dao.CoreDao;
@@ -22,7 +24,6 @@ import edu.isi.bmkeg.vpdmf.model.definitions.VPDMf;
 import edu.isi.bmkeg.vpdmf.model.definitions.ViewDefinition;
 import edu.isi.bmkeg.vpdmf.model.instances.AttributeInstance;
 import edu.isi.bmkeg.vpdmf.model.instances.LightViewInstance;
-import edu.isi.bmkeg.vpdmf.model.instances.ViewBasedObjectGraph;
 import edu.isi.bmkeg.vpdmf.model.instances.ViewInstance;
 
 @Repository
@@ -55,10 +56,6 @@ public class TriageDaoExImpl implements TriageDaoEx {
 
 	private VPDMfChangeEngineInterface getCe() {
 		return coreDao.getCe();
-	}
-
-	private Map<String, ViewBasedObjectGraph> generateVbogs() throws Exception {
-		return coreDao.generateVbogs();
 	}
 
 	private VPDMf getTop() {
@@ -98,26 +95,10 @@ public class TriageDaoExImpl implements TriageDaoEx {
 	// ~~~~~~~~~~~~~~~~~~~
 	// Insert Functions
 	// ~~~~~~~~~~~~~~~~~~~
-	@Override
-	public void insertArticleTriageCorpus(TriageCorpus tc) throws Exception {
-
-		getCoreDao().insertVBOG(tc, "ArticleTriageCorpus");
-
-	}
 
 	// ~~~~~~~~~~~~~~~~~~~
 	// Update Functions
 	// ~~~~~~~~~~~~~~~~~~~
-
-	@Override
-	public long updateTriageScore(TriageScore td)  throws Exception {
-		return getCoreDao().update(td,"TriageScore");
-	}
-
-	@Override
-	public long updateTriagedArticle(TriageScore td)  throws Exception {
-		return getCoreDao().update(td,"TriagedArticle");
-	}
 	
 	// ~~~~~~~~~~~~~~~~~~~
 	// Delete Functions
@@ -130,16 +111,17 @@ public class TriageDaoExImpl implements TriageDaoEx {
 	@Override
 	public TriageCorpus findTriageCorpusByName(String name) throws Exception {
 
-		return (TriageCorpus) getCoreDao().findVBOGByAttributeValue(
-				"TriageCorpus", "Corpus", "Corpus", "name", name);
-
-	}
-
-	@Override
-	public TriageScore findTriageScoreById(long id) throws Exception {
-
-		return (TriageScore) this.coreDao.findVBOGById(id, "TriageScore");
+		TriageCorpus_qo tQo = new TriageCorpus_qo();
+		tQo.setName(name);
 		
+		List<LightViewInstance> lviList = coreDao.list(tQo, "TriageCorpus");
+		if( lviList.size() != 1 )
+			return null;
+
+		TriageCorpus tc = coreDao.findById(lviList.get(0).getVpdmfId(), new TriageCorpus(), "TriageCorpus");
+		
+		return tc;
+
 	}
 	
 	// ~~~~~~~~~~~~~~~~~~~~
@@ -149,20 +131,6 @@ public class TriageDaoExImpl implements TriageDaoEx {
 	// ~~~~~~~~~~~~~~
 	// List functions
 	// ~~~~~~~~~~~~~~
-	@Override
-	public List<LightViewInstance> listTriageArticlesByTriageCorpus(
-			String corpusName) throws Exception {
-		
-		List<LightViewInstance> l = null;
-		try {
-			getCe().connectToDB();
-			l = this.coreDao.goGetLightViewList("TriagedArticle",
-					"]TriageCorpus|TriageCorpus.name", corpusName);
-		} finally {
-			getCe().closeDbConnection();
-		}
-		return l;
-	}
 
 	// ~~~~~~~~~~~~~~~~~~~~
 	// Add x to y functions
@@ -172,141 +140,132 @@ public class TriageDaoExImpl implements TriageDaoEx {
 			String targetCorpus,
 			Map<Integer, String> pmidCodes) throws Exception {
 
-		try {
+		int count = 0;
+		long t = System.currentTimeMillis();
+		
+		SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+		String timestamp = df.format(new Date());
+		
+		ChangeEngine ce = (ChangeEngine) this.coreDao.getCe();
+		VPDMf top = ce.readTop();
 
-			int count = 0;
-			long t = System.currentTimeMillis();
+		ViewDefinition vd = top.getViews().get("TriagedArticle");
+		ViewDefinition articleVd = top.getViews().get("ArticleCitation");
+
+		List<Integer> pmids = new ArrayList<Integer>(pmidCodes.keySet());
+		Collections.sort(pmids);
+		Iterator<Integer> it = pmids.iterator();
+		while (it.hasNext()) {
+			Integer pmid = it.next();
+
+			ViewInstance qvi = new ViewInstance(articleVd);
+			AttributeInstance ai = qvi.readAttributeInstance(
+					"]LiteratureCitation|ArticleCitation.pmid", 0);
+			ai.writeValueString(pmid + "");
+			List<LightViewInstance> l = ce.executeListQuery(qvi);
+			if( l.size() == 0 ) {
+				continue;
+			} else if( l.size() > 1 ) {
+				throw new Exception("PMID " + pmid + " ambiguous.");
+			}
+			LightViewInstance lvi = l.get(0);
+				
+			ViewInstance vi = new ViewInstance(vd);
+
+			ai = vi.readAttributeInstance(
+					"]TriageCorpus|Corpus.name", 0);
+			ai.writeValueString(triageCorpus);
+
+			ai = vi.readAttributeInstance(
+					"]TargetCorpus|Corpus.name", 0);
+			ai.writeValueString(targetCorpus);
 			
-			SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-			String timestamp = df.format(new Date());
+			String code = pmidCodes.get(pmid);
 			
-			ChangeEngine ce = (ChangeEngine) this.coreDao.getCe();
-			VPDMf top = ce.readTop();
+			ai = vi.readAttributeInstance(
+					"]LiteratureCitation|ViewTable.vpdmfLabel", 0);
+			ai.writeValueString(lvi.getVpdmfLabel());
 
-			ce.connectToDB();
-			ce.turnOffAutoCommit();
-
-			ViewDefinition vd = top.getViews().get("TriagedArticle");
-			ViewDefinition articleVd = top.getViews().get("ArticleCitation");
-
-			List<Integer> pmids = new ArrayList<Integer>(pmidCodes.keySet());
-			Collections.sort(pmids);
-			Iterator<Integer> it = pmids.iterator();
-			while (it.hasNext()) {
-				Integer pmid = it.next();
-
-				ViewInstance qvi = new ViewInstance(articleVd);
-				AttributeInstance ai = qvi.readAttributeInstance(
-						"]LiteratureCitation|ArticleCitation.pmid", 0);
-				ai.writeValueString(pmid + "");
-				List<LightViewInstance> l = ce.executeListQuery(qvi);
-				if( l.size() == 0 ) {
-					continue;
-				} else if( l.size() > 1 ) {
-					throw new Exception("PMID " + pmid + " ambiguous.");
-				}
-				LightViewInstance lvi = l.get(0);
-					
-				ViewInstance vi = new ViewInstance(vd);
-
-				ai = vi.readAttributeInstance(
-						"]TriageCorpus|Corpus.name", 0);
-				ai.writeValueString(triageCorpus);
-
-				ai = vi.readAttributeInstance(
-						"]TargetCorpus|Corpus.name", 0);
-				ai.writeValueString(targetCorpus);
+			ai = vi.readAttributeInstance(
+					"]LiteratureCitation|ViewTable.vpdmfId", 0);
+			ai.writeValueString(lvi.getVpdmfId() + "");
+			
+			// May may need to delete the existing data in the database.
+			List<LightViewInstance> lviList = getCe().executeListQuery(vi);
+			if( lviList.size() > 0 ) {
 				
-				String code = pmidCodes.get(pmid);
+				//
+				// REMOVE EXISTING DATA FROM THE TRIAGE SCORE 
+				// (AND TRIAGEFEATURE) TABLE.
+				// NEED TO UPDATE THE DELETION FUNCTIONS WITHIN VPDMf
+				//
+				String sql1 = "DELETE tf.* " +
+							 "FROM TriageScore AS ts, " +  
+							 " TriageFeature AS tf, " + 
+							 " LiteratureCitation AS litcit, " +
+							 " Corpus AS targetc, " +
+							 " Corpus AS triagec " +
+							 "WHERE ts.citation_id = litcit.vpdmfId " +		
+							 "  AND litcit.vpdmfId = " + lvi.getVpdmfId() +		
+							 "  AND ts.targetCorpus_id = targetc.vpdmfId " +		
+							 "  AND targetc.name = '" + targetCorpus + "'" +
+							 "  AND ts.triageCorpus_id = triagec.vpdmfId " +
+							 "  AND triagec.name = '" + triageCorpus + "';";
+								
+				int nRowsChanged = this.getCoreDao().getCe().executeRawUpdateQuery(sql1);				
+				this.coreDao.getCe().prettyPrintSQL(sql1);
+				logger.debug(nRowsChanged + " rows altered.");
+	
+				String sql2 = "DELETE ts.*, vt.* " +
+						 "FROM TriageScore AS ts, " + 
+						 " ViewTable AS vt, " +
+						 " LiteratureCitation AS litcit, " +
+						 " Corpus AS targetc, " +
+						 " Corpus AS triagec " +
+						 "WHERE vt.vpdmfId = ts.vpdmfId " +
+						 "  AND ts.citation_id = litcit.vpdmfId " +		
+						 "  AND litcit.vpdmfId = " + lvi.getVpdmfId() +		
+						 "  AND ts.targetCorpus_id = targetc.vpdmfId " +		
+						 "  AND targetc.name = '" + targetCorpus + "'" +
+						 "  AND ts.triageCorpus_id = triagec.vpdmfId " +
+						 "  AND triagec.name = '" + triageCorpus + "';";
 				
-				ai = vi.readAttributeInstance(
-						"]LiteratureCitation|ViewTable.vpdmfLabel", 0);
-				ai.writeValueString(lvi.getVpdmfLabel());
-
-				ai = vi.readAttributeInstance(
-						"]LiteratureCitation|ViewTable.vpdmfId", 0);
-				ai.writeValueString(lvi.getVpdmfId() + "");
+				nRowsChanged = this.getCoreDao().getCe().executeRawUpdateQuery(sql2);				
+				this.coreDao.getCe().prettyPrintSQL(sql2);
+				logger.debug(nRowsChanged + " rows altered.");
 				
-				// May may need to delete the existing data in the database.
-				List<LightViewInstance> lviList = getCe().executeListQuery(vi);
-				if( lviList.size() > 0 ) {
-					
-					//
-					// REMOVE EXISTING DATA FROM THE TRIAGE SCORE TABLE.
-					// NEED TO UPDATE THE DELETION FUNCTIONS WITHIN VPDMf
-					//
-					String sql = "DELETE ts.*, vt.* " +
-								 "FROM TriageScore AS ts, " + 
-								 " ViewTable AS vt, " +
-								 " LiteratureCitation AS litcit, " +
-								 " Corpus AS targetc, " +
-								 " Corpus AS triagec " +
-								 "WHERE vt.vpdmfId = ts.vpdmfId " +
-								 "  AND ts.citation_id = litcit.vpdmfId " +		
-								 "  AND litcit.vpdmfId = " + lvi.getVpdmfId() +		
-								 "  AND ts.targetCorpus_id = targetc.vpdmfId " +		
-								 "  AND targetc.name = '" + targetCorpus + "'" +
-								 "  AND ts.triageCorpus_id = triagec.vpdmfId " +
-								 "  AND triagec.name = '" + triageCorpus + "';";
-										
-					// PURGE EVERYTHING FROM TRIAGE CORPUS
-					// DELETE ts.*, vt.* 
-					// FROM TriageScore AS ts,  
-					// ViewTable AS vt, 
-					// WHERE vt.vpdmfId = ts.vpdmfId 
-					// AND ts.triageCorpus_id = 26768;
-					
-					int nRowsChanged = this.getCoreDao().getCe().executeRawUpdateQuery(sql);
-					
-					this.coreDao.getCe().prettyPrintSQL(sql);
-					logger.debug(nRowsChanged + " rows altered.");
-					
-				}
-
-				count++;
-
-				if( (count % 50 == 0) )
-					logger.info("Updated " + count + " / " + pmids.size() 
-							+ " documents in " + 
-							(System.currentTimeMillis() - t) / 1000.0 + " s");
-				
-				ai = vi.readAttributeInstance(
-						"]TriageScore|TriageScore.inOutCode", 0);
-				ai.setValue(code);
-
-				ai = vi.readAttributeInstance(
-						"]TriageScore|TriageScore.inScore", 0);
-				ai.writeValueString("-1");
-
-				ai = vi.readAttributeInstance(
-						"]TriageScore|TriageScore.classifyTimestamp", 0);
-				ai.writeValueString(timestamp);
-				
-				ai = vi.readAttributeInstance(
-						"]TriageScore|TriageScore.scoredTimestamp", 0);
-				ai.writeValueString(timestamp);
-				
-				getCe().executeInsertQuery(vi);
-
 			}
 
-			ce.commitTransaction();
+			count++;
 
-			long deltaT = System.currentTimeMillis() - t;
-			logger.info("Added " + count + " entries in " + deltaT / 1000.0 + " s\n");
+			if( (count % 50 == 0) )
+				logger.info("Updated " + count + " / " + pmids.size() 
+						+ " documents in " + 
+						(System.currentTimeMillis() - t) / 1000.0 + " s");
+			
+			ai = vi.readAttributeInstance(
+					"]TriageScore|TriageScore.inOutCode", 0);
+			ai.setValue(code);
 
-		} catch (Exception e) {
+			ai = vi.readAttributeInstance(
+					"]TriageScore|TriageScore.inScore", 0);
+			ai.writeValueString("-1");
 
-			e.printStackTrace();
-
-		} finally {
-
-			getCe().closeDbConnection();
+			ai = vi.readAttributeInstance(
+					"]TriageScore|TriageScore.classifyTimestamp", 0);
+			ai.writeValueString(timestamp);
+			
+			ai = vi.readAttributeInstance(
+					"]TriageScore|TriageScore.scoredTimestamp", 0);
+			ai.writeValueString(timestamp);
+			
+			getCe().executeInsertQuery(vi);
 
 		}
 
+		long deltaT = System.currentTimeMillis() - t;
+		logger.info("Added " + count + " entries in " + deltaT / 1000.0 + " s\n");
+
 	}
-
-
 
 }

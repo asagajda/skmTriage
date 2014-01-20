@@ -3,6 +3,7 @@ package edu.isi.bmkeg.skm.triage.cleartk.bin;
 import java.io.File;
 
 import org.apache.uima.collection.CollectionReader;
+import org.apache.uima.resource.metadata.TypeSystemDescription;
 import org.cleartk.classifier.jar.DefaultDataWriterFactory;
 import org.cleartk.classifier.jar.DirectoryDataWriterFactory;
 import org.cleartk.classifier.jar.JarClassifierBuilder;
@@ -14,6 +15,8 @@ import org.cleartk.util.Options_ImplBase;
 import org.kohsuke.args4j.Option;
 import org.uimafit.factory.AggregateBuilder;
 import org.uimafit.factory.AnalysisEngineFactory;
+import org.uimafit.factory.CollectionReaderFactory;
+import org.uimafit.factory.TypeSystemDescriptionFactory;
 import org.uimafit.pipeline.SimplePipeline;
 
 import edu.isi.bmkeg.skm.triage.cleartk.annotators.EvaluationPreparer;
@@ -65,13 +68,19 @@ public class PreprocessTriageScores {
 
 		long startTime = System.currentTimeMillis();
 
-		CollectionReader reader = TriageScoreCollectionReader.load(
-				options.triageCorpus, 
-				options.targetCorpus, 
-				options.login, 
-				options.password, 
-				options.dbName,
-				true);
+		TypeSystemDescription typeSystem = TypeSystemDescriptionFactory
+				.createTypeSystemDescription("uimaTypes.triage",
+						"edu.isi.bmkeg.skm.cleartk.TypeSystem");
+		
+		CollectionReader cr = CollectionReaderFactory.createCollectionReader(
+				TriageScoreCollectionReader.class, typeSystem, 
+				TriageScoreCollectionReader.TRIAGE_CORPUS_NAME, options.triageCorpus,
+				TriageScoreCollectionReader.TARGET_CORPUS_NAME, options.targetCorpus,
+				TriageScoreCollectionReader.LOGIN, options.login, 
+				TriageScoreCollectionReader.PASSWORD, options.password, 
+				TriageScoreCollectionReader.DB_URL, options.dbName,
+				TriageScoreCollectionReader.SKIP_UNKNOWNS, true);
+		
 
 	    AggregateBuilder builder = new AggregateBuilder();
 
@@ -95,7 +104,7 @@ public class PreprocessTriageScores {
 	    // ///////////////////////////////////////////
 	    // Run pipeline to create training data file
 	    // ///////////////////////////////////////////
-	    SimplePipeline.runPipeline(reader, builder.createAggregateDescription());
+	    SimplePipeline.runPipeline(cr, builder.createAggregateDescription());
 
 	}
 

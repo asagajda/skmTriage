@@ -50,19 +50,18 @@ public class ReportTargetCorpusContents  {
 		Options options = new Options();
 
 		CmdLineParser parser = new CmdLineParser(options);
+		parser.parseArgument(args);
+
+		DigitalLibraryEngine de = new DigitalLibraryEngine();
+		de.initializeVpdmfDao(options.login, options.password, options.dbName);		
+		CoreDao dao = de.getDigLibDao().getCoreDao();
 
 		try {
 
-			parser.parseArgument(args);
-
-			DigitalLibraryEngine de = null;
-
-			de = new DigitalLibraryEngine();
-			de.initializeVpdmfDao(options.login, options.password, options.dbName);
-			
-			CoreDao dao = de.getCitDao().getCoreDao();
 			VPDMf top = dao.getTop();
 
+			dao.connectToDb();
+			
 			TriageScore_qo tsQo = new TriageScore_qo();
 			tsQo.setInOutCode("in");
 			Corpus_qo cQo = new Corpus_qo();
@@ -81,7 +80,7 @@ public class ReportTargetCorpusContents  {
 			System.out.println(String.format("%-9s %s", 
 					"PMID", "CITATION"));
 
-			List<LightViewInstance> tsList = dao.list(tsQo, "TriagedArticle"); 
+			List<LightViewInstance> tsList = dao.listInTrans(tsQo, "TriagedArticle"); 
 			for( LightViewInstance lvi : tsList) {
 
 				Map<String, String> itm = lvi.readIndexTupleMap(top);
@@ -104,6 +103,14 @@ public class ReportTargetCorpusContents  {
 
 			System.exit(-1);
 
+		} catch (Exception e) {
+		
+			e.printStackTrace();
+			
+		} finally {
+			
+			dao.closeDbConnection();
+		
 		}
 
 	}

@@ -67,7 +67,7 @@ public class UpdateTriageCorpusFromFile {
 			TriageEngine te = new TriageEngine();
 			te.initializeVpdmfDao(options.login, options.password, options.dbName);
 			
-			TriageCorpus tc = te.findTriageCorpusByName(options.corpusName);
+			TriageCorpus tc = te.findTriageCorpusByNameInTrans(options.corpusName);
 			if( tc == null ) {
 				throw new Exception("TriageCorpus " + options.corpusName + " does not exist.");
 			}

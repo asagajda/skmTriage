@@ -82,7 +82,6 @@ public class UnigramCountAnnotator extends CategorizedFtdAnnotator {
 			writeInstance(jCas, features);
 			
 		}
-
 		else {
 			
 			// during classification, use the classifier's output 

@@ -3,8 +3,6 @@ package edu.isi.bmkeg.skm.triage.bin;
 import java.io.File;
 import java.sql.SQLException;
 
-import junit.framework.Assert;
-
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -14,7 +12,7 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 import edu.isi.bmkeg.digitalLibrary.bin.EditArticleCorpus;
-import edu.isi.bmkeg.digitalLibrary.dao.vpdmf.VpdmfCitationsDao;
+import edu.isi.bmkeg.digitalLibrary.dao.ExtendedDigitalLibraryDao;
 import edu.isi.bmkeg.skm.triage.controller.TriageEngine;
 import edu.isi.bmkeg.utils.springContext.AppContext;
 import edu.isi.bmkeg.utils.springContext.BmkegProperties;
@@ -31,7 +29,7 @@ public class _07_RunReportingFunctionsTest {
 	File archiveFile, pmidFile_allChecked, triageCodes, pdfDir, pdfDir2;
 	VPDMfKnowledgeBaseBuilder builder;
 	TriageEngine te;
-	VpdmfCitationsDao dao;
+	ExtendedDigitalLibraryDao dao;
 	
 	String queryString;
 	
@@ -86,6 +84,7 @@ public class _07_RunReportingFunctionsTest {
 	
 			te = new TriageEngine();
 			te.initializeVpdmfDao(login, password, dbUrl);
+			te.getDigLibDao().getCoreDao().connectToDb();
 			
 			corpusName = "TriageCorpus";
 	
@@ -134,6 +133,8 @@ public class _07_RunReportingFunctionsTest {
 	
 			BuildTriageCorpusFromPdfDir.main(args);
 
+			te.getDigLibDao().getCoreDao().closeDbConnection();
+			
 		}
 		
 	}

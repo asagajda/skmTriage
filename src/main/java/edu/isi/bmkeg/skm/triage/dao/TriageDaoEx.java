@@ -30,14 +30,9 @@ public interface TriageDaoEx {
 	// Insert Functions
 	// ~~~~~~~~~~~~~~~~~~~
 
-	public void insertArticleTriageCorpus(TriageCorpus tc) throws Exception;
-
 	// ~~~~~~~~~~~~~~~~~~~
 	// Update Functions
 	// ~~~~~~~~~~~~~~~~~~~
-	public long updateTriageScore(TriageScore td)  throws Exception;
-	
-	public long updateTriagedArticle(TriageScore td)  throws Exception;
 	
 	// ~~~~~~~~~~~~~~~~~~~
 	// Delete Functions
@@ -48,8 +43,6 @@ public interface TriageDaoEx {
 	// ~~~~~~~~~~~~~~~~~~~~
 
 	public TriageCorpus findTriageCorpusByName(String name) throws Exception;
-
-	public TriageScore findTriageScoreById(long id) throws Exception;
 
 	// ~~~~~~~~~~~~~~~~~~~~
 	// check Functions
@@ -63,9 +56,6 @@ public interface TriageDaoEx {
 	// List functions
 	// ~~~~~~~~~~~~~~
 
-	public List<LightViewInstance> listTriageArticlesByTriageCorpus(
-			String corpusName) throws Exception;
-	
 	// ~~~~~~~~~~~~~~~~~~~~
 	// Add x to y functions
 	// ~~~~~~~~~~~~~~~~~~~~

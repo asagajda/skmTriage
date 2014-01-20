@@ -12,10 +12,8 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
-import edu.isi.bmkeg.digitalLibrary.bin.AddPmidEncodedPdfsToCorpus;
 import edu.isi.bmkeg.digitalLibrary.bin.EditArticleCorpus;
-import edu.isi.bmkeg.digitalLibrary.dao.vpdmf.VpdmfCitationsDao;
-import edu.isi.bmkeg.skm.triage.cleartk.bin.PreprocessTriageScores;
+import edu.isi.bmkeg.digitalLibrary.dao.ExtendedDigitalLibraryDao;
 import edu.isi.bmkeg.skm.triage.cleartk.bin.TriageDocumentsClassifier;
 import edu.isi.bmkeg.utils.springContext.AppContext;
 import edu.isi.bmkeg.utils.springContext.BmkegProperties;
@@ -31,7 +29,7 @@ ApplicationContext ctx;
 	File archiveFile, pmidFile_allChecked, triageCodes, pdfDir, pdfDir2, outDir;
 	VPDMfKnowledgeBaseBuilder builder;
 	
-	VpdmfCitationsDao dao;
+	ExtendedDigitalLibraryDao dao;
 	
 	String queryString;
 	

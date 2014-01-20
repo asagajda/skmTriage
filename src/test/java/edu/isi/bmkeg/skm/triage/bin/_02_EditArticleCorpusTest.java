@@ -12,7 +12,7 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 import edu.isi.bmkeg.digitalLibrary.bin.EditArticleCorpus;
-import edu.isi.bmkeg.digitalLibrary.dao.vpdmf.VpdmfCitationsDao;
+import edu.isi.bmkeg.digitalLibrary.dao.ExtendedDigitalLibraryDao;
 import edu.isi.bmkeg.utils.springContext.AppContext;
 import edu.isi.bmkeg.utils.springContext.BmkegProperties;
 import edu.isi.bmkeg.vpdmf.controller.VPDMfKnowledgeBaseBuilder;
@@ -27,7 +27,7 @@ public class _02_EditArticleCorpusTest {
 	File archiveFile, pmidFile_allChecked, triageCodes, pdfDir;
 	VPDMfKnowledgeBaseBuilder builder;
 	
-	VpdmfCitationsDao dao;
+	ExtendedDigitalLibraryDao dao;
 	
 	String queryString;
 	

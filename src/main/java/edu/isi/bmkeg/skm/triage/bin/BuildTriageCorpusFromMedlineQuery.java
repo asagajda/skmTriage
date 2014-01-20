@@ -11,6 +11,7 @@ import org.apache.log4j.Logger;
 import edu.isi.bmkeg.digitalLibrary.utils.pubmed.ESearcher;
 import edu.isi.bmkeg.skm.triage.controller.TriageEngine;
 import edu.isi.bmkeg.skm.triage.model.TriageCode;
+import edu.isi.bmkeg.triage.model.TriageCorpus;
 import edu.isi.bmkeg.vpdmf.model.definitions.VPDMf;
 
 public class BuildTriageCorpusFromMedlineQuery {
@@ -44,7 +45,10 @@ public class BuildTriageCorpusFromMedlineQuery {
 		TriageEngine te = new TriageEngine();
 		te.initializeVpdmfDao(login, password, dbName);
 		
-		te.createEmptyTriageCorpus(triageCorpus, queryString, masterCorpus);
+		TriageCorpus tc = new TriageCorpus();
+		tc.setName(triageCorpus);
+		tc.setDescription( "Created from Medline query: " + queryString);
+		te.getTriageDao().insertTriageCorpus(tc);
 		
 		ESearcher eSearcher = new ESearcher(queryString);
 		int maxCount = eSearcher.getMaxCount();

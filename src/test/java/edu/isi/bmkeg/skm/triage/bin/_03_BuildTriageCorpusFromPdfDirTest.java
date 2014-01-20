@@ -14,8 +14,9 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 import edu.isi.bmkeg.digitalLibrary.bin.EditArticleCorpus;
-import edu.isi.bmkeg.digitalLibrary.dao.vpdmf.VpdmfCitationsDao;
+import edu.isi.bmkeg.digitalLibrary.dao.ExtendedDigitalLibraryDao;
 import edu.isi.bmkeg.skm.triage.controller.TriageEngine;
+import edu.isi.bmkeg.triage.model.qo.TriageScore_qo;
 import edu.isi.bmkeg.utils.springContext.AppContext;
 import edu.isi.bmkeg.utils.springContext.BmkegProperties;
 import edu.isi.bmkeg.vpdmf.controller.VPDMfKnowledgeBaseBuilder;
@@ -31,7 +32,7 @@ public class _03_BuildTriageCorpusFromPdfDirTest {
 	File archiveFile, pmidFile_allChecked, triageCodes, pdfDir, pdfDir2;
 	VPDMfKnowledgeBaseBuilder builder;
 	TriageEngine te;
-	VpdmfCitationsDao dao;
+	ExtendedDigitalLibraryDao dao;
 	
 	String queryString;
 	
@@ -142,7 +143,7 @@ public class _03_BuildTriageCorpusFromPdfDirTest {
 
 		BuildTriageCorpusFromPdfDir.main(args);
 		
-		int count = te.getCitDao().getCoreDao().countView("TriageScore");
+		int count = te.getDigLibDao().getCoreDao().countView(new TriageScore_qo(), "TriageScore");
 		Assert.assertEquals(10, count);
 	}
 		
@@ -160,7 +161,7 @@ public class _03_BuildTriageCorpusFromPdfDirTest {
 
 		BuildTriageCorpusFromPdfDir.main(args);
 
-		int count = te.getCitDao().getCoreDao().countView("TriageScore");
+		int count = te.getDigLibDao().getCoreDao().countView(new TriageScore_qo(), "TriageScore");
 		Assert.assertEquals(10, count);
 
 	}
@@ -189,7 +190,7 @@ public class _03_BuildTriageCorpusFromPdfDirTest {
 
 		BuildTriageCorpusFromPdfDir.main(args);
 
-		int count = te.getCitDao().getCoreDao().countView("TriageScore");
+		int count = te.getDigLibDao().getCoreDao().countView(new TriageScore_qo(), "TriageScore");
 		Assert.assertEquals(16, count);
 
 	}

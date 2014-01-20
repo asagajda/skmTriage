@@ -50,19 +50,18 @@ public class ReportTriageCorpusContents  {
 
 		Options options = new Options();
 
-		CmdLineParser parser = new CmdLineParser(options);
+		CmdLineParser parser = new CmdLineParser(options);		
+		parser.parseArgument(args);
+
+		DigitalLibraryEngine de = null;
+
+		de = new DigitalLibraryEngine();
+		de.initializeVpdmfDao(options.login, options.password, options.dbName);
+		
+		CoreDao dao = de.getDigLibDao().getCoreDao();
+		VPDMf top = dao.getTop();
 
 		try {
-
-			parser.parseArgument(args);
-
-			DigitalLibraryEngine de = null;
-
-			de = new DigitalLibraryEngine();
-			de.initializeVpdmfDao(options.login, options.password, options.dbName);
-			
-			CoreDao dao = de.getCitDao().getCoreDao();
-			VPDMf top = dao.getTop();
 
 			TriageScore_qo tsQo = new TriageScore_qo();
 				
@@ -100,7 +99,7 @@ public class ReportTriageCorpusContents  {
 							itm.get("[TriagedArticle]LiteratureCitation|ViewTable.vpdmfLabel")));
 			
 			}
-			
+						
 		} catch (CmdLineException e) {
 
 			System.err.println(e.getMessage());
@@ -111,7 +110,7 @@ public class ReportTriageCorpusContents  {
 
 			System.exit(-1);
 
-		}
+		} 
 
 	}
 

@@ -42,7 +42,7 @@ public class DumpTriageCorpusToTriageCodeFile {
 		TriageEngine te = new TriageEngine();
 		te.initializeVpdmfDao(login, password, dbName);
 		
-		TriageCorpus tc = te.findTriageCorpusByName(name);
+		TriageCorpus tc = te.findTriageCorpusByNameInTrans(name);
 				
 	}
 

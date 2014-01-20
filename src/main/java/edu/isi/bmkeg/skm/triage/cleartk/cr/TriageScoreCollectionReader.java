@@ -1,8 +1,16 @@
 package edu.isi.bmkeg.skm.triage.cleartk.cr;
 
 import java.io.IOException;
+import java.io.StringReader;
+import java.io.StringWriter;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+
+import javax.xml.transform.Transformer;
+import javax.xml.transform.TransformerException;
+import javax.xml.transform.TransformerFactory;
+import javax.xml.transform.stream.StreamResult;
+import javax.xml.transform.stream.StreamSource;
 
 import org.apache.log4j.Logger;
 import org.apache.uima.UimaContext;
@@ -12,6 +20,12 @@ import org.apache.uima.jcas.JCas;
 import org.apache.uima.resource.ResourceInitializationException;
 import org.apache.uima.resource.metadata.TypeSystemDescription;
 import org.apache.uima.util.Progress;
+import org.apache.uima.util.ProgressImpl;
+import org.jsoup.Jsoup;
+import org.jsoup.examples.HtmlToPlainText;
+import org.jsoup.nodes.Document;
+import org.springframework.core.io.ClassPathResource;
+import org.springframework.core.io.Resource;
 import org.uimafit.component.JCasCollectionReader_ImplBase;
 import org.uimafit.descriptor.ConfigurationParameter;
 import org.uimafit.factory.CollectionReaderFactory;
@@ -98,6 +112,7 @@ public class TriageScoreCollectionReader extends JCasCollectionReader_ImplBase {
 	private boolean eof = false;
 
 	private boolean isAggregate;
+	
 	/**
 	 * The next AggregatedScore or null if EOF
 	 */
@@ -106,64 +121,8 @@ public class TriageScoreCollectionReader extends JCasCollectionReader_ImplBase {
 	protected long startTime, endTime;
 
 	protected int pos = 0, count = 0;
-	
-	protected TriageEngine triageEngine = null;
-		
-	public static CollectionReader load(
-			String triageCorpusName, String targetCorpusName,
-			String login,
-			String password, String dbName)
-			throws ResourceInitializationException {
 
-		return load(triageCorpusName, targetCorpusName, login, password, dbName, false);
-		
-	}
-
-	public static CollectionReader load(
-			String targetCorpusName,
-			String login,
-			String password, String dbName)
-			throws ResourceInitializationException {
-
-		return load(null, targetCorpusName, login, password, dbName, false);
-		
-	}
-
-	public static CollectionReader load(
-			String targetCorpusName,
-			String login,
-			String password, String dbName,
-			boolean skipUnknowns)
-			throws ResourceInitializationException {
-
-		return load(null, targetCorpusName, login, password, dbName, skipUnknowns);
-		
-	}
-
-	public static CollectionReader load(
-			String triageCorpusName, String targetCorpusName,
-			String login,
-			String password, String dbName,
-			boolean skipUnknowns)
-			throws ResourceInitializationException {
-
-		TypeSystemDescription typeSystem = TypeSystemDescriptionFactory
-				.createTypeSystemDescription("uimaTypes.triage",
-						"edu.isi.bmkeg.skm.cleartk.TypeSystem");
-		
-		CollectionReader reader = 
-				CollectionReaderFactory.createCollectionReader(
-				TriageScoreCollectionReader.class, typeSystem, 
-				TRIAGE_CORPUS_NAME, triageCorpusName,
-				TARGET_CORPUS_NAME, targetCorpusName,
-				LOGIN, login, 
-				PASSWORD, password, 
-				DB_URL, dbName,
-				SKIP_UNKNOWNS, skipUnknowns);
-		
-		return reader;
-	
-	}
+	private TriageEngine triageEngine;
 
 	@Override
 	public void initialize(UimaContext context) throws ResourceInitializationException {
@@ -172,10 +131,10 @@ public class TriageScoreCollectionReader extends JCasCollectionReader_ImplBase {
 
 			isAggregate =  (triageCorpusName == null || triageCorpusName.length() == 0);
 			triageEngine = new TriageEngine();
-			triageEngine.initializeVpdmfDao(login, password, dbUrl);				
+			triageEngine.initializeVpdmfDao(login, password, dbUrl);	
 			
 			// Query based on a query constructed with SqlQueryBuilder based on the TriagedArticle view.
-			String sql = "SELECT DISTINCT FTD_0__FTD.text, " + 
+			String sql = "SELECT DISTINCT FTD_0__FTD.pmcXml, " + 
 					" TriageScore_0__TriageScore.inOutCode, " +
 					" TriageScore_0__TriageScore.vpdmfId, " + 
 					" TriageScore_0__TriageScore.citation_id " + 
@@ -201,16 +160,21 @@ public class TriageScoreCollectionReader extends JCasCollectionReader_ImplBase {
 
 			sql += " ORDER BY TriageScore_0__TriageScore.citation_id";
 			
-			triageEngine.getCitDao().getCoreDao().getCe().connectToDB();
+			triageEngine.getDigLibDao().getCoreDao().getCe().connectToDB();
 			
-			this.rs = triageEngine.getCitDao().getCoreDao().getCe().executeRawSqlQuery(sql);
+			this.rs = triageEngine.getDigLibDao().getCoreDao().getCe().executeRawSqlQuery(sql);
 			
+			this.rs.last();
+			this.count = this.rs.getRow();
+			
+			this.rs.beforeFirst();			
 			this.pos = 0;
 			
 			this.startTime = System.currentTimeMillis();
-			
+
+			//
 			// Calling moveNext() to compute the first currentAs
-			
+			//
 			eof = ! rs.next();
 			moveNext();
 			
@@ -235,7 +199,7 @@ public class TriageScoreCollectionReader extends JCasCollectionReader_ImplBase {
 				jcas.setDocumentText( currentAs.text );
 
 			TriageScore doc = new TriageScore(jcas);
-		    doc.setVpdmfId(isAggregate ? -1 : currentAs.vpdmfId);
+		    doc.setVpdmfId(currentAs.vpdmfId);
 		    doc.setCitation_id(currentAs.citId);
 		    doc.setInOutCode(currentAs.code);
 		    doc.addToIndexes(jcas);
@@ -259,7 +223,7 @@ public class TriageScoreCollectionReader extends JCasCollectionReader_ImplBase {
 		
 	public void close() throws IOException {
 		try {
-			triageEngine.getCitDao().getCoreDao().getCe().closeDbConnection();
+			triageEngine.getDigLibDao().getCoreDao().getCe().closeDbConnection();
 		} catch (Exception e) {
 			throw new IOException(e);
 		}
@@ -269,8 +233,10 @@ public class TriageScoreCollectionReader extends JCasCollectionReader_ImplBase {
 	 * sets the next currentAs.
 	 * 
 	 * If skipUnknowns is true it will skips the citations whose aggregated code is "unknown"
+	 * @throws TransformerException 
+	 * @throws IOException 
 	 */
-	private void moveNext() throws SQLException {
+	private void moveNext() throws SQLException, IOException, TransformerException {
 		currentAs = computeAggregatedScore();
 		
 		if (skipUnknowns) {
@@ -291,18 +257,43 @@ public class TriageScoreCollectionReader extends JCasCollectionReader_ImplBase {
 	 * the current vpdmfId is seen or
 	 * b) eof is true
 	 * @throws SQLException 
+	 * @throws IOException 
+	 * @throws TransformerException 
 	 * 
 	 */
-	private AggregatedScore computeAggregatedScore() throws SQLException {
+	private AggregatedScore computeAggregatedScore() throws 
+			SQLException, IOException, TransformerException {
 
 		if (eof)
 			return null;
 		
-		AggregatedScore as = 
-				new AggregatedScore(rs.getLong("vpdmfId"),
-						rs.getLong("citation_id"),
-						rs.getString("inOutCode"),
-						rs.getString("text"));
+		Long vpdmfId = rs.getLong("vpdmfId");
+		Long citation_id = rs.getLong("citation_id");
+		String inOutCode = rs.getString("inOutCode");
+		String pmcXml = rs.getString("pmcXml");
+		
+		StringReader inputReader = new StringReader(pmcXml);
+		StringWriter outputWriter = new StringWriter();
+		
+		TransformerFactory tf = TransformerFactory.newInstance();
+		Resource xslResource = new ClassPathResource(
+				"jatsPreviewStyleSheets/xslt/main/jats-html.xsl"
+				);
+		StreamSource xslt = new StreamSource(xslResource.getInputStream());
+		Transformer transformer = tf.newTransformer(xslt);
+
+		StreamSource source = new StreamSource(inputReader);
+		StreamResult result = new StreamResult(outputWriter);
+		transformer.transform(source, result);
+		String html = outputWriter.toString();  
+				
+		Document doc = Jsoup.parse(html);
+		HtmlToPlainText formatter = new HtmlToPlainText();
+        String plainText = formatter.getPlainText(doc);
+		
+		AggregatedScore as = new AggregatedScore(
+				vpdmfId, citation_id, inOutCode, plainText
+				);
 		
 		eof = !rs.next();
 		
@@ -334,9 +325,13 @@ public class TriageScoreCollectionReader extends JCasCollectionReader_ImplBase {
 		logger.error(message);
 	}
 
-	public Progress[] getProgress() {
-		// TODO Auto-generated method stub
-		return null;
+	public Progress[] getProgress() {		
+		Progress progress = new ProgressImpl(
+				this.pos, 
+				this.count, 
+				Progress.ENTITIES);
+		
+        return new Progress[] { progress };
 	}
 
 }

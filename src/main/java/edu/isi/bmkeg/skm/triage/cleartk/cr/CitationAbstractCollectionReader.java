@@ -20,6 +20,8 @@ import org.uimafit.factory.ConfigurationParameterFactory;
 import org.uimafit.factory.TypeSystemDescriptionFactory;
 
 import edu.isi.bmkeg.digitalLibrary.model.citations.ArticleCitation;
+import edu.isi.bmkeg.digitalLibrary.model.qo.citations.ArticleCitation_qo;
+import edu.isi.bmkeg.digitalLibrary.model.qo.citations.Corpus_qo;
 import edu.isi.bmkeg.skm.triage.controller.TriageEngine;
 import edu.isi.bmkeg.vpdmf.model.instances.LightViewInstance;
 import edu.isi.bmkeg.vpdmf.uimaTypes.ViewTable;
@@ -116,10 +118,15 @@ public class CitationAbstractCollectionReader extends CollectionReader_ImplBase 
 			te = new TriageEngine();
 			te.initializeVpdmfDao(login, password, dbUrl);
 			
-			this.count = te.getCitDao().countCorpusArticles(corpusName);
-			List<LightViewInstance> lviList = te.getCitDao().listCorpusArticles(corpusName);
+			ArticleCitation_qo acQo = new ArticleCitation_qo();
+			Corpus_qo cQo = new Corpus_qo();
+			acQo.getCorpora().add(cQo);
+			cQo.setName(corpusName);	
+			this.count = te.getDigLibDao().countArticleCitation(acQo);
+
+			List<LightViewInstance> lviList = te.getDigLibDao().listArticleCitationDocument(acQo);
 			
-			te.getCitDao().getCoreDao().getCe().connectToDB();
+			te.getDigLibDao().getCoreDao().getCe().connectToDB();
 			
 			this.it = lviList.iterator();
 			this.startTime = System.currentTimeMillis();
@@ -144,7 +151,7 @@ public class CitationAbstractCollectionReader extends CollectionReader_ImplBase 
 			LightViewInstance lvi = this.it.next();
 			
 			// ArticleCitation view instance from the database
-			ArticleCitation cit = this.te.getCitDao().findArticleByVpdmfId(lvi.getVpdmfId());
+			ArticleCitation cit = this.te.getDigLibDao().findArticleCitationById(lvi.getVpdmfId());
 						
 			if( cit.getAbstractText() == null )
 			    jcas.setDocumentText("");
@@ -174,7 +181,7 @@ public class CitationAbstractCollectionReader extends CollectionReader_ImplBase 
 
 	public void close() throws IOException {
 		try {
-			te.getCitDao().getCoreDao().getCe().closeDbConnection();
+			te.getDigLibDao().getCoreDao().getCe().closeDbConnection();
 		} catch (Exception e) {
 			throw new IOException(e);
 		}

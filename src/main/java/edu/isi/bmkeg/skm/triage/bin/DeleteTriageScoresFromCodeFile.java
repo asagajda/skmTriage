@@ -59,20 +59,24 @@ public class DeleteTriageScoresFromCodeFile {
 		Options options = new Options();
 		
 		CmdLineParser parser = new CmdLineParser(options);
+		parser.parseArgument(args);
+
+		TriageEngine te = new TriageEngine();
+		te.initializeVpdmfDao(options.login, options.password, options.dbName);
 
 		try {
+
+			te.getDigLibDao().getCoreDao().connectToDb();
 			
-			parser.parseArgument(args);
 			
-			TriageEngine te = new TriageEngine();
-			te.initializeVpdmfDao(options.login, options.password, options.dbName);
-			
-			TriageCorpus tc = te.findTriageCorpusByName(options.corpusName);
+			TriageCorpus tc = te.findTriageCorpusByNameInTrans(options.corpusName);
 			if( tc == null ) {
 				throw new Exception("TriageCorpus " + options.corpusName + " does not exist.");
 			}
 			
 			te.deleteArticlesFromTriageCorpusBasedOnCodeFile(tc, options.codeList);
+			
+			te.getDigLibDao().getCoreDao().commitTransaction();
 			
 		} catch (CmdLineException e) {
 			
@@ -81,10 +85,15 @@ public class DeleteTriageScoresFromCodeFile {
 			parser.printSingleLineUsage(System.err);
 			System.err.println("\n\n Options: \n");
 			parser.printUsage(System.err);
+
+			te.getDigLibDao().getCoreDao().rollbackTransaction();
 			
-			System.exit(-1);
-		
+		} finally {
+			
+			te.getDigLibDao().getCoreDao().closeDbConnection();
+			
 		}
+		
 
 	}
 	

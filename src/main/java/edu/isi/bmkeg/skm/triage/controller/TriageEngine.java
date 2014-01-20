@@ -4,9 +4,9 @@ import java.io.BufferedReader;
 import java.io.DataInputStream;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.InputStreamReader;
 import java.nio.charset.Charset;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
@@ -20,6 +20,9 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.apache.log4j.Logger;
+import org.apache.uima.resource.DataResource;
+import org.apache.uima.resource.ResourceInitializationException;
+import org.apache.uima.resource.SharedResourceObject;
 
 import edu.isi.bmkeg.digitalLibrary.controller.DigitalLibraryEngine;
 import edu.isi.bmkeg.digitalLibrary.model.citations.ArticleCitation;
@@ -33,34 +36,34 @@ import edu.isi.bmkeg.skm.triage.model.TriageCode;
 import edu.isi.bmkeg.triage.dao.TriageDao;
 import edu.isi.bmkeg.triage.dao.impl.TriageDaoImpl;
 import edu.isi.bmkeg.triage.model.TriageCorpus;
+import edu.isi.bmkeg.triage.model.TriageFeature;
 import edu.isi.bmkeg.triage.model.TriageScore;
+import edu.isi.bmkeg.triage.model.qo.TriageCorpus_qo;
 import edu.isi.bmkeg.utils.Converters;
 import edu.isi.bmkeg.vpdmf.controller.queryEngineTools.ChangeEngine;
 import edu.isi.bmkeg.vpdmf.dao.CoreDao;
-import edu.isi.bmkeg.vpdmf.model.definitions.VPDMf;
-import edu.isi.bmkeg.vpdmf.model.definitions.ViewDefinition;
-import edu.isi.bmkeg.vpdmf.model.instances.AttributeInstance;
 import edu.isi.bmkeg.vpdmf.model.instances.LightViewInstance;
-import edu.isi.bmkeg.vpdmf.model.instances.ViewInstance;
 
-
-public class TriageEngine extends DigitalLibraryEngine {
+public class TriageEngine extends DigitalLibraryEngine 
+		implements SharedResourceObject {
 
 	private static Logger logger = Logger.getLogger(TriageEngine.class);
 
-	
 	private TriageDaoEx exTriageDao;
 
 	private TriageDao triageDao;
-	
+
 	public TriageEngine() throws Exception {
 		super();
 	}
 
 	public TriageEngine(File pdfRuleFile) throws Exception {
 		super(pdfRuleFile);
+		
+		if( !pdfRuleFile.exists() )
+			throw new FileNotFoundException(pdfRuleFile.getPath() + " not found.");
 	}
-	
+
 	// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 	// Getters and Setters
 	// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -79,168 +82,172 @@ public class TriageEngine extends DigitalLibraryEngine {
 	public void setTriageDao(TriageDao triageDao) {
 		this.triageDao = triageDao;
 	}
-	
+
+	// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+	// When being used in a UIMA Pipeline.
+	// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+	@Override
+	public void load(DataResource aData) throws ResourceInitializationException {
+		// TODO Auto-generated method stub
+		int pause = 0;
+		pause++;
+		
+	}
+
 	// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 	// High-level API Functions
 	// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-	public void buildTriageCorpusFromPdfFileOrDir(TriageCorpus tc, 
+	public void buildTriageCorpusFromPdfFileOrDir(TriageCorpus tc,
 			File pdfFileOrDir, File codeFile) throws Exception {
 
 		this.insertPmidPdfFileOrDir(pdfFileOrDir);
-		
+
 		Map<Integer, String> codeList = this.compileCodeList(pdfFileOrDir);
-		if( codeFile != null )
-			codeList.putAll( this.compileCodeList(codeFile) );
-		
+		if (codeFile != null)
+			codeList.putAll(this.compileCodeList(codeFile));
+
 		this.addCodeListToCorpus(tc, codeList);
-		
+
 	}
 
-	public void buildTriageCorpusFromCodeFile(TriageCorpus tc, File codeFile) throws Exception {
+	public void buildTriageCorpusFromCodeFile(TriageCorpus tc, File codeFile)
+			throws Exception {
 
 		Map<Integer, String> codeList = this.compileCodeList(codeFile);
-		
+
 		this.addCodeListToCorpus(tc, codeList);
-		
+
 	}
 
-	public void deleteArticlesFromTriageCorpusBasedOnCodeFile(TriageCorpus tc, File codeFile) throws Exception {
+	public void deleteArticlesFromTriageCorpusBasedOnCodeFile(TriageCorpus tc,
+			File codeFile) throws Exception {
 
 		Map<Integer, String> pmidCodes = this.compileCodeList(codeFile);
 
-		ChangeEngine ce = (ChangeEngine) this.getCitDao().getCoreDao().getCe();
-		
-		try {
+		ChangeEngine ce = (ChangeEngine) this.getDigLibDao().getCoreDao()
+				.getCe();
 
-			ce.connectToDB();
-			ce.turnOffAutoCommit();
+		List<Integer> pmids = new ArrayList<Integer>(pmidCodes.keySet());
+		int nRowsChanged = 0;
+		Collections.sort(pmids);
+		Iterator<Integer> it = pmids.iterator();
+		while (it.hasNext()) {
+			Integer pmid = it.next();
 
-			List<Integer> pmids = new ArrayList<Integer>(pmidCodes.keySet());
-			int nRowsChanged = 0;
-			Collections.sort(pmids);
-			Iterator<Integer> it = pmids.iterator();
-			while (it.hasNext()) {
-				Integer pmid = it.next();
+			String sql = "DELETE ts.*, vt.* " + "FROM TriageScore AS ts, "
+					+ " ViewTable AS vt, "
+					+ " LiteratureCitation AS litcit, "
+					+ " ArticleCitation AS artcit, "
+					+ " Corpus AS triagec "
+					+ "WHERE vt.vpdmfId = ts.vpdmfId "
+					+ "  AND ts.citation_id = litcit.vpdmfId "
+					+ "  AND litcit.vpdmfId = artcit.vpdmfId "
+					+ "  AND artcit.pmid = '" + pmid + "'"
+					+ "  AND ts.triageCorpus_id = triagec.vpdmfId "
+					+ "  AND triagec.name = '" + tc.getName() + "';";
 
-				String sql = "DELETE ts.*, vt.* " +
-							 "FROM TriageScore AS ts, " + 
-							 " ViewTable AS vt, " +
-							 " LiteratureCitation AS litcit, " +
-							 " ArticleCitation AS artcit, " +
-							 " Corpus AS triagec " +
-							 "WHERE vt.vpdmfId = ts.vpdmfId " +
-							 "  AND ts.citation_id = litcit.vpdmfId " +		
-							 "  AND litcit.vpdmfId = artcit.vpdmfId " +		
-							 "  AND artcit.pmid = '" + pmid + "'" +		
-							 "  AND ts.triageCorpus_id = triagec.vpdmfId " +
-							 "  AND triagec.name = '" + tc.getName() + "';";
-									
-				nRowsChanged += ce.executeRawUpdateQuery(sql);
-				
-				ce.prettyPrintSQL(sql);
-				
-			}
+			nRowsChanged += ce.executeRawUpdateQuery(sql);
 
-			ce.commitTransaction();
-			logger.info(nRowsChanged + " rows altered.");
-
-		} catch (Exception e) {
-
-			ce.commitTransaction();
-			e.printStackTrace();
-
-		} finally {
-
-			ce.closeDbConnection();
+			ce.prettyPrintSQL(sql);
 
 		}
-		
+
+		ce.commitTransaction();
+		logger.info(nRowsChanged + " rows altered.");
+
 	}
-	
-	
-	private void addCodeListToCorpus(TriageCorpus tc, Map<Integer, String> codeList) throws Exception {
-	
+
+	public void addCodeListToCorpus(TriageCorpus tc,
+			Map<Integer, String> codeList) throws Exception {
+
 		Corpus_qo cq = new Corpus_qo();
-		List<LightViewInstance> cList = this.getDigLibDao().getCoreDao().list(cq, "Corpus");
-		for( LightViewInstance lvi : cList ) {
-			Corpus c = this.getCitDao().getCoreDao().findById(lvi.getVpdmfId(), new Corpus(), "Corpus");
-			if( c.getRegex() == null )
+		List<LightViewInstance> cList = this.getDigLibDao().getCoreDao()
+				.listInTrans(cq, "Corpus");
+		for (LightViewInstance lvi : cList) {
+			Corpus c = this.getDigLibDao().getCoreDao().findByIdInTrans(
+					lvi.getVpdmfId(), 
+					new Corpus(),
+					"Corpus");
+			if (c.getRegex() == null)
 				continue;
 
 			// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-			// Are there any codes assigned? If so, we assume that 
+			// Are there any codes assigned? If so, we assume that
 			// ALL PAPERS IN THE COLLECTION ARE 'IN' OR 'OUT'
 			// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 			boolean allInOut = false;
-			for( String s : codeList.values() ) {
-				if( s.length() > 0 ) {
+			for (String s : codeList.values()) {
+				if (s.length() > 0) {
 					allInOut = true;
 					break;
 				}
 			}
-			
-			if( allInOut ) {
+
+			if (allInOut) {
 				logger.info("ASSUMING THAT ALL DOCUMENTS ARE CLASSIFED");
 			} else {
 				logger.info("ASSUMING THAT ALL DOCUMENTS ARE UNCLASSIFED");
 			}
-			
-			Map<Integer,String> pmidCodes = new HashMap<Integer,String>();
-			for( Integer pmid: codeList.keySet() ) {
+
+			Map<Integer, String> pmidCodes = new HashMap<Integer, String>();
+			for (Integer pmid : codeList.keySet()) {
 				String code = codeList.get(pmid);
-				if( !allInOut ) {
+				if (!allInOut) {
 					pmidCodes.put(pmid, TriageCode.UNCLASSIFIED);
-				}
-				else {
-					if( code.contains(c.getRegex()) ) {
+				} else {
+					if (code.contains(c.getRegex())) {
 						pmidCodes.put(pmid, TriageCode.IN);
-					} else { 
+					} else {
 						pmidCodes.put(pmid, TriageCode.OUT);
 					}
 				}
 			}
-		
-			this.exTriageDao.addTriageDocumentsToCorpus(tc.getName(), c.getName(), pmidCodes);
-			
+
+			this.exTriageDao.addTriageDocumentsToCorpus(tc.getName(),
+					c.getName(), pmidCodes);
+
 		}
 	}
-	
 
-	private Map<Integer, String> compileCodeList(File inputFile) throws Exception {
+	public Map<Integer, String> compileCodeList(File inputFile)
+			throws Exception {
 		Map<Integer, String> codeMap = new HashMap<Integer, String>();
-		
-		Pattern pmidPatt = Pattern.compile("^(\\d+).*\\.pdf$");	
+
+		Pattern pmidPatt = Pattern.compile("^(\\d+).*\\.pdf$");
 		Pattern noCodePatt = Pattern.compile("^(\\d+)\\.pdf$");
 		Pattern codePatt = Pattern.compile("^(\\d+)_(.*)\\.pdf$");
-		
+
 		// if file is a PDF (*.pdf), process the file name.
 		// if file is a directory, process the file names.
 		// if file is a text file (*.txt) process the contents.
-		
-		if( inputFile.getName().endsWith(".pdf") && !inputFile.isDirectory() ) {
-			
+
+		if (inputFile.getName().endsWith(".pdf") && !inputFile.isDirectory()) {
+
 			Matcher m = pmidPatt.matcher(inputFile.getName());
 			if (m.find()) {
 				Integer id = new Integer(m.group(1));
 				codeMap.put(id, "");
 			}
-			
+
 			Matcher noCodeMatch = noCodePatt.matcher(inputFile.getName());
 			if (noCodeMatch.find()) {
 				Integer id = new Integer(noCodeMatch.group(1));
 				codeMap.put(id, "");
 			}
-			
+
 			Matcher codeMatch = codePatt.matcher(inputFile.getName());
 			if (codeMatch.find()) {
 				Integer id = new Integer(codeMatch.group(1));
 				codeMap.put(id, codeMatch.group(2));
 			}
-			
-		} else if( inputFile.getName().endsWith(".txt") && !inputFile.isDirectory() ) {
-			
+
+		} else if (inputFile.getName().endsWith(".txt")
+				&& !inputFile.isDirectory()) {
+
 			FileInputStream fis = new FileInputStream(inputFile);
-			BufferedReader br = new BufferedReader(new InputStreamReader(fis, Charset.forName("UTF-8")));
+			BufferedReader br = new BufferedReader(new InputStreamReader(fis,
+					Charset.forName("UTF-8")));
 			String line = "";
 			while ((line = br.readLine()) != null) {
 				Matcher noCodeMatch = noCodePatt.matcher(line);
@@ -255,12 +262,11 @@ public class TriageEngine extends DigitalLibraryEngine {
 				}
 			}
 
-		} else if( inputFile.isDirectory() ) {
+		} else if (inputFile.isDirectory()) {
 
-			List<File> pdfList = new ArrayList<File>(
-					Converters.recursivelyListFiles(inputFile).values()
-					);
-			for( File f : pdfList ) {
+			List<File> pdfList = new ArrayList<File>(Converters
+					.recursivelyListFiles(inputFile).values());
+			for (File f : pdfList) {
 				Matcher m = pmidPatt.matcher(f.getName());
 				if (m.find()) {
 					Integer id = new Integer(m.group(1));
@@ -268,7 +274,7 @@ public class TriageEngine extends DigitalLibraryEngine {
 				}
 			}
 
-			for( File f : pdfList ) {
+			for (File f : pdfList) {
 				Matcher noCodeMatch = noCodePatt.matcher(f.getName());
 				if (noCodeMatch.find()) {
 					Integer id = new Integer(noCodeMatch.group(1));
@@ -279,18 +285,19 @@ public class TriageEngine extends DigitalLibraryEngine {
 					Integer id = new Integer(codeMatch.group(1));
 					codeMap.put(id, codeMatch.group(2));
 				}
-			}	
+			}
 
 		} else {
-		
-			throw new Exception("Not sure what sort of file this is: " + inputFile.getPath() );
-		
+
+			throw new Exception("Not sure what sort of file this is: "
+					+ inputFile.getPath());
+
 		}
 
 		return codeMap;
-		
+
 	}
-	
+
 	// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 	// VPDMf functions
 	// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -312,36 +319,22 @@ public class TriageEngine extends DigitalLibraryEngine {
 
 	// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-	public void createEmptyTriageCorpus(String name, 
-			String queryString,
-			String masterCorpus) throws Exception {
+	public TriageCorpus findTriageCorpusByNameInTrans(String name) throws Exception {
 
-		TriageCorpus tc = new TriageCorpus();
-		tc.setName(name);
-		tc.setCorpusCreationQuery(queryString);
-
-		this.exTriageDao.insertArticleTriageCorpus(tc);
-
-	}
-
-	public void createEmptyTriageCorpus(String name, 
-			String masterCorpus) throws Exception {
-
-		TriageCorpus tc = new TriageCorpus();
-		tc.setName(name);
+		TriageCorpus_qo tQo = new TriageCorpus_qo();
+		tQo.setName(name);
 		
-		this.exTriageDao.insertArticleTriageCorpus(tc);
+		List<LightViewInstance> lviList = this.triageDao.getCoreDao().listInTrans(tQo, "TriageCorpus");
+		if( lviList.size() != 1 )
+			return null;
 
-	}
-	
-	// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-	
-	public TriageCorpus findTriageCorpusByName(String name) throws Exception {
+		TriageCorpus tc = this.triageDao.getCoreDao().findByIdInTrans(
+				lviList.get(0).getVpdmfId(), new TriageCorpus(), "TriageCorpus");
 		
-		return this.exTriageDao.findTriageCorpusByName(name);
+		return tc;
 	
 	}
-	
+
 	// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 	public Set<Integer> loadArticlesFromESearch(String queryString,
@@ -356,6 +349,7 @@ public class TriageEngine extends DigitalLibraryEngine {
 
 			if (a.getVolume() == null || a.getVolume().length() == 0) {
 				a.setVolume("-");
+				a.setVolValue(-1);
 			}
 			if (a.getPages() == null || a.getPages().length() == 0) {
 				a.setPages("-");
@@ -373,7 +367,7 @@ public class TriageEngine extends DigitalLibraryEngine {
 
 			try {
 				logger.info("inserting article, PMID=" + a.getPmid());
-				getCitDao().insertArticleCitation(a);
+				this.getDigLibDao().insertArticleCitation(a);
 			} catch (Exception e) {
 				logger.info("article insert failed, PMID=" + a.getPmid());
 				e.printStackTrace();
@@ -447,41 +441,82 @@ public class TriageEngine extends DigitalLibraryEngine {
 		return idMap;
 
 	}
-	
-	public Set<Integer> loadCodedPmidsFromFile(File triageCodesFile, String code) throws Exception {
+
+	public Set<Integer> loadCodedPmidsFromFile(File triageCodesFile, String code)
+			throws Exception {
 
 		Set<Integer> pmids = new HashSet<Integer>();
-		
-		Map<Integer, String> pmidCodes = this.loadCodesFromPmidFile(triageCodesFile);
+
+		Map<Integer, String> pmidCodes = this
+				.loadCodesFromPmidFile(triageCodesFile);
 		Iterator<Integer> pmidIt = pmidCodes.keySet().iterator();
-		while( pmidIt.hasNext() ) {
+		while (pmidIt.hasNext()) {
 			Integer pmid = pmidIt.next();
-			if( pmidCodes.get(pmid).equals(code) ) {
+			if (pmidCodes.get(pmid).equals(code)) {
 				pmids.add(pmid);
 			}
 		}
-		
+
 		return pmids;
-		
+
 	}
 
-	public void updateInScore(long vpdmfId, float inScore, Date timestamp) throws Exception {
-		
-		TriageScore td =  this.triageDao.findTriagedArticleById(vpdmfId);
-	
+	public void updateInScore(long vpdmfId, float inScore, Date timestamp)
+			throws Exception {
+
+		TriageScore td = this.triageDao.getCoreDao().findByIdInTrans(vpdmfId,
+				new TriageScore(), "TriagedArticle");
+
 		if (td == null) {
 			logger.warn("Failed to find TriagedDocument with id:" + vpdmfId);
 			return;
-		} 
-		
+		}
+
 		td.setInScore(inScore);
 		td.setScoredTimestamp(timestamp);
-		
-		getExTriageDao().updateTriagedArticle(td);
+
+		getExTriageDao().getCoreDao().updateInTrans(td, "TriagedArticle");
 
 	}
-	
-	
 
+	public int removeAllExplanationFeatures(
+			Long tsId
+			) throws Exception {
 
+		ChangeEngine ce = (ChangeEngine) this.getDigLibDao().getCoreDao().getCe();
+		
+		String sql = "DELETE tf.* FROM TriageFeature as tf " + 
+				"WHERE tf.score_id = " + tsId +";";
+	
+		ce.prettyPrintSQL(sql);				
+		
+		return ce.executeRawUpdateQuery(sql);
+						
+	}
+	
+	/**
+	 * TODO GENERALIZE THIS ASPECT OF THIS SYSTEM!!!
+	 * 
+	 * @param tfMap
+	 * @throws Exception
+	 */
+	public int insertExplanationFeatures(
+			Long tsId, TriageFeature tf
+			) throws Exception {
+
+		ChangeEngine ce = (ChangeEngine) this.getDigLibDao().getCoreDao().getCe();
+		
+		String sql = "INSERT INTO TriageFeature " +
+				" (featName, featValue, score_id) " +
+				" VALUES (\"" + 
+				tf.getFeatName() + "\", \"" + 
+				tf.getFeatValue() + "\"," +
+				tsId + ");";
+	
+		ce.prettyPrintSQL(sql);				
+		
+		return ce.executeRawUpdateQuery(sql);
+						
+	}
+	
 }
