@@ -1,5 +1,6 @@
 package edu.isi.bmkeg.skm.triage.cleartk.cr;
 
+import java.io.EOFException;
 import java.io.IOException;
 import java.io.StringReader;
 import java.io.StringWriter;
@@ -15,10 +16,8 @@ import javax.xml.transform.stream.StreamSource;
 import org.apache.log4j.Logger;
 import org.apache.uima.UimaContext;
 import org.apache.uima.collection.CollectionException;
-import org.apache.uima.collection.CollectionReader;
 import org.apache.uima.jcas.JCas;
 import org.apache.uima.resource.ResourceInitializationException;
-import org.apache.uima.resource.metadata.TypeSystemDescription;
 import org.apache.uima.util.Progress;
 import org.apache.uima.util.ProgressImpl;
 import org.jsoup.Jsoup;
@@ -28,12 +27,11 @@ import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
 import org.uimafit.component.JCasCollectionReader_ImplBase;
 import org.uimafit.descriptor.ConfigurationParameter;
-import org.uimafit.factory.CollectionReaderFactory;
 import org.uimafit.factory.ConfigurationParameterFactory;
-import org.uimafit.factory.TypeSystemDescriptionFactory;
 
 import edu.isi.bmkeg.skm.triage.controller.TriageEngine;
 import edu.isi.bmkeg.skm.triage.model.TriageCode;
+import edu.isi.bmkeg.triage.model.qo.*;
 import edu.isi.bmkeg.triage.uimaTypes.TriageScore;
 
 /**
@@ -42,8 +40,9 @@ import edu.isi.bmkeg.triage.uimaTypes.TriageScore;
  * This collection reader will retrieve at most one item per citation. If no triage corpus parameter
  * is specified it will aggregate the triageScores corresponding to all existing triage corpora. If a 
  * single citation has different triage codes in different triage corpora it will use the following rule
- * to assign an aggregated triage code: 1) "in" will override "out" and "unknown" and 2) "out" will override
- * "unknown".
+ * to assign an aggregated triage code: 1) "in" will override "out" and "unclassified" and 
+ * 2) "out" will override "unclassified".
+ * 
  * We want to optimize this interaction for speed, so we run a
  * manual query over the underlying database involving a minimal subset of
  * tables.
@@ -124,6 +123,8 @@ public class TriageScoreCollectionReader extends JCasCollectionReader_ImplBase {
 
 	private TriageEngine triageEngine;
 
+	private int triageCorpusCount;
+
 	@Override
 	public void initialize(UimaContext context) throws ResourceInitializationException {
 
@@ -134,11 +135,14 @@ public class TriageScoreCollectionReader extends JCasCollectionReader_ImplBase {
 			triageEngine.initializeVpdmfDao(login, password, dbUrl);	
 			
 			// Query based on a query constructed with SqlQueryBuilder based on the TriagedArticle view.
-			String sql = "SELECT DISTINCT FTD_0__FTD.pmcXml, " + 
+			String selectSql = "SELECT DISTINCT FTD_0__FTD.pmcXml, " + 
 					" TriageScore_0__TriageScore.inOutCode, " +
 					" TriageScore_0__TriageScore.vpdmfId, " + 
-					" TriageScore_0__TriageScore.citation_id " + 
-					"FROM FTD AS FTD_0__FTD, " + 
+					" TriageScore_0__TriageScore.citation_id ";
+
+			String countSql = "SELECT COUNT(*) ";
+			
+			String fromWhereSql = "FROM FTD AS FTD_0__FTD, " + 
 					" LiteratureCitation AS LiteratureCitation_0__LiteratureCitation, " + 
 					" Corpus AS TargetCorpus_0__Corpus, " +
 					" TriageScore AS TriageScore_0__TriageScore " + 
@@ -149,7 +153,7 @@ public class TriageScoreCollectionReader extends JCasCollectionReader_ImplBase {
 					" FTD_0__FTD.vpdmfId=LiteratureCitation_0__LiteratureCitation.fullText_id";
 			
 			if (!isAggregate) {
-				sql += " AND TriageScore_0__TriageScore.triageCorpus_id IN " + 
+				fromWhereSql += " AND TriageScore_0__TriageScore.triageCorpus_id IN " + 
 						"(SELECT TriageCorpus_0__Corpus.vpdmfId " + 
 						"FROM " +
 						" Corpus AS TriageCorpus_0__Corpus " +
@@ -157,25 +161,32 @@ public class TriageScoreCollectionReader extends JCasCollectionReader_ImplBase {
 						" TriageCorpus_0__Corpus.name = '" + triageCorpusName + "')";				
 			}
 
-
-			sql += " ORDER BY TriageScore_0__TriageScore.citation_id";
+			fromWhereSql += " ORDER BY TriageScore_0__TriageScore.citation_id";
 			
 			triageEngine.getDigLibDao().getCoreDao().getCe().connectToDB();
+
+			TriageCorpus_qo tcQo = new TriageCorpus_qo();
+			if( triageCorpusName != null && triageCorpusName.length() > 0 )
+				tcQo.setName(triageCorpusName);
+			this.triageCorpusCount = triageEngine.getDigLibDao().getCoreDao().
+					countViewInTrans(tcQo, "TriageCorpus");
 			
-			this.rs = triageEngine.getDigLibDao().getCoreDao().getCe().executeRawSqlQuery(sql);
 			
-			this.rs.last();
-			this.count = this.rs.getRow();
+			ResultSet countRs = triageEngine.getDigLibDao().getCoreDao().getCe().executeRawSqlQuery(
+					countSql + fromWhereSql);
+			countRs.next();
+			this.count = countRs.getInt(1);
+			countRs.close();
+
+			this.rs = triageEngine.getDigLibDao().getCoreDao().getCe().executeRawSqlQuery(
+					selectSql + fromWhereSql);
 			
-			this.rs.beforeFirst();			
 			this.pos = 0;
-			
 			this.startTime = System.currentTimeMillis();
 
 			//
 			// Calling moveNext() to compute the first currentAs
 			//
-			eof = ! rs.next();
 			moveNext();
 			
 		} catch (Exception e) {
@@ -205,6 +216,8 @@ public class TriageScoreCollectionReader extends JCasCollectionReader_ImplBase {
 		    doc.addToIndexes(jcas);
 
 		    moveNext();
+		    
+		    pos++;
 		    
 		} catch (Exception e) {
 
@@ -237,6 +250,7 @@ public class TriageScoreCollectionReader extends JCasCollectionReader_ImplBase {
 	 * @throws IOException 
 	 */
 	private void moveNext() throws SQLException, IOException, TransformerException {
+		
 		currentAs = computeAggregatedScore();
 		
 		if (skipUnknowns) {
@@ -264,6 +278,8 @@ public class TriageScoreCollectionReader extends JCasCollectionReader_ImplBase {
 	private AggregatedScore computeAggregatedScore() throws 
 			SQLException, IOException, TransformerException {
 
+		eof = !rs.next();
+		
 		if (eof)
 			return null;
 		
@@ -295,22 +311,23 @@ public class TriageScoreCollectionReader extends JCasCollectionReader_ImplBase {
 				vpdmfId, citation_id, inOutCode, plainText
 				);
 		
-		eof = !rs.next();
-		
-		while (!eof && rs.getLong("citation_id") == as.citId) {
+		//
+		// Aggregate the score across all TriageCorpora 
+		// simply counted during initialization 
+		// and stored in this.triageCorpusCount.
+		//
+		for( int i = 0; i<this.triageCorpusCount-1 && !eof; i++) {
+			eof = !rs.next();
 			String code =  rs.getString("inOutCode");
 			if (TriageCode.IN.equals(code)) 
 				as.code = code;
 			else if (TriageCode.OUT.equals(code) && !TriageCode.IN.equals(as.code))
-				as.code = code;
-
-			eof = !rs.next();
-			
+				as.code = code;			
 		}
 		
 		return as;
 	}
-	
+		
 	protected void error(String message) {
 		logger.error(message);
 	}

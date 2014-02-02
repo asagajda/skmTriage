@@ -195,6 +195,7 @@ public class TriageDocumentsClassifier {
 				TriageScoreCollectionReader.class, typeSystem,
 				TriageScoreCollectionReader.TRIAGE_CORPUS_NAME, triageCorpus,
 				TriageScoreCollectionReader.TARGET_CORPUS_NAME, targetCorpus,
+				TriageScoreCollectionReader.SKIP_UNKNOWNS, true,
 				TriageScoreCollectionReader.LOGIN, login,
 				TriageScoreCollectionReader.PASSWORD, password,
 				TriageScoreCollectionReader.DB_URL, dbName);
@@ -300,16 +301,12 @@ public class TriageDocumentsClassifier {
 		builder.add(AnalysisEngineFactory.createPrimitiveDescription(
 				Uni_and_BigramCountAnnotator.class,
 				CleartkAnnotator.PARAM_IS_TRAINING, false,
-				GenericJarClassifierFactory.PARAM_CLASSIFIER_JAR_PATH,
-				classifierJarPath));
+				GenericJarClassifierFactory.PARAM_CLASSIFIER_JAR_PATH, classifierJarPath));
 
 		//
 		// generate description
 		//
 		AnalysisEngine ae = builder.createAggregate();
-
-		// Get classifier's outcome and update db
-		AnalysisEngine engine = builder.createAggregate();
 
 		Date timestamp = new Date();
 
@@ -318,7 +315,7 @@ public class TriageDocumentsClassifier {
 			this.te.getDigLibDao().getCoreDao().getCe().connectToDB();
 			this.te.getDigLibDao().getCoreDao().getCe().turnOffAutoCommit();
 
-			for (JCas jCas : new JCasIterable(cr, engine)) {
+			for (JCas jCas : new JCasIterable(cr, ae)) {
 
 				CatorgorizedFtdText document = JCasUtil.selectSingle(jCas,
 						CatorgorizedFtdText.class);

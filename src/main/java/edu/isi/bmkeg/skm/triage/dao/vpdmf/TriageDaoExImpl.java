@@ -17,8 +17,8 @@ import org.springframework.web.context.WebApplicationContext;
 import edu.isi.bmkeg.skm.triage.dao.TriageDaoEx;
 import edu.isi.bmkeg.triage.model.TriageCorpus;
 import edu.isi.bmkeg.triage.model.qo.TriageCorpus_qo;
+import edu.isi.bmkeg.vpdmf.controller.queryEngineTools.ChangeEngineImpl;
 import edu.isi.bmkeg.vpdmf.controller.queryEngineTools.ChangeEngine;
-import edu.isi.bmkeg.vpdmf.controller.queryEngineTools.VPDMfChangeEngineInterface;
 import edu.isi.bmkeg.vpdmf.dao.CoreDao;
 import edu.isi.bmkeg.vpdmf.model.definitions.VPDMf;
 import edu.isi.bmkeg.vpdmf.model.definitions.ViewDefinition;
@@ -54,7 +54,7 @@ public class TriageDaoExImpl implements TriageDaoEx {
 		return coreDao;
 	}
 
-	private VPDMfChangeEngineInterface getCe() {
+	private ChangeEngine getCe() {
 		return coreDao.getCe();
 	}
 
@@ -146,7 +146,7 @@ public class TriageDaoExImpl implements TriageDaoEx {
 		SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 		String timestamp = df.format(new Date());
 		
-		ChangeEngine ce = (ChangeEngine) this.coreDao.getCe();
+		ChangeEngineImpl ce = (ChangeEngineImpl) this.coreDao.getCe();
 		VPDMf top = ce.readTop();
 
 		ViewDefinition vd = top.getViews().get("TriagedArticle");

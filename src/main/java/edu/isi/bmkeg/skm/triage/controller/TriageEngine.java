@@ -40,7 +40,7 @@ import edu.isi.bmkeg.triage.model.TriageFeature;
 import edu.isi.bmkeg.triage.model.TriageScore;
 import edu.isi.bmkeg.triage.model.qo.TriageCorpus_qo;
 import edu.isi.bmkeg.utils.Converters;
-import edu.isi.bmkeg.vpdmf.controller.queryEngineTools.ChangeEngine;
+import edu.isi.bmkeg.vpdmf.controller.queryEngineTools.ChangeEngineImpl;
 import edu.isi.bmkeg.vpdmf.dao.CoreDao;
 import edu.isi.bmkeg.vpdmf.model.instances.LightViewInstance;
 
@@ -125,7 +125,7 @@ public class TriageEngine extends DigitalLibraryEngine
 
 		Map<Integer, String> pmidCodes = this.compileCodeList(codeFile);
 
-		ChangeEngine ce = (ChangeEngine) this.getDigLibDao().getCoreDao()
+		ChangeEngineImpl ce = (ChangeEngineImpl) this.getDigLibDao().getCoreDao()
 				.getCe();
 
 		List<Integer> pmids = new ArrayList<Integer>(pmidCodes.keySet());
@@ -483,7 +483,7 @@ public class TriageEngine extends DigitalLibraryEngine
 			Long tsId
 			) throws Exception {
 
-		ChangeEngine ce = (ChangeEngine) this.getDigLibDao().getCoreDao().getCe();
+		ChangeEngineImpl ce = (ChangeEngineImpl) this.getDigLibDao().getCoreDao().getCe();
 		
 		String sql = "DELETE tf.* FROM TriageFeature as tf " + 
 				"WHERE tf.score_id = " + tsId +";";
@@ -504,7 +504,7 @@ public class TriageEngine extends DigitalLibraryEngine
 			Long tsId, TriageFeature tf
 			) throws Exception {
 
-		ChangeEngine ce = (ChangeEngine) this.getDigLibDao().getCoreDao().getCe();
+		ChangeEngineImpl ce = (ChangeEngineImpl) this.getDigLibDao().getCoreDao().getCe();
 		
 		String sql = "INSERT INTO TriageFeature " +
 				" (featName, featValue, score_id) " +

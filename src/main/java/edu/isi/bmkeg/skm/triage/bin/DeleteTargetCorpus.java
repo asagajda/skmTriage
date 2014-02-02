@@ -10,7 +10,7 @@ import org.kohsuke.args4j.Option;
 
 import edu.isi.bmkeg.digitalLibrary.controller.DigitalLibraryEngine;
 import edu.isi.bmkeg.triage.model.qo.TriageCorpus_qo;
-import edu.isi.bmkeg.vpdmf.controller.queryEngineTools.ChangeEngine;
+import edu.isi.bmkeg.vpdmf.controller.queryEngineTools.ChangeEngineImpl;
 import edu.isi.bmkeg.vpdmf.dao.CoreDao;
 import edu.isi.bmkeg.vpdmf.model.definitions.VPDMf;
 import edu.isi.bmkeg.vpdmf.model.instances.LightViewInstance;
@@ -69,7 +69,7 @@ public class DeleteTargetCorpus {
 
 		CoreDao dao = de.getDigLibDao().getCoreDao();
 		
-		ChangeEngine ce = (ChangeEngine) dao.getCe();
+		ChangeEngineImpl ce = (ChangeEngineImpl) dao.getCe();
 
 		try {
 

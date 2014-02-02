@@ -9,7 +9,7 @@ import org.kohsuke.args4j.CmdLineParser;
 import org.kohsuke.args4j.Option;
 
 import edu.isi.bmkeg.digitalLibrary.controller.DigitalLibraryEngine;
-import edu.isi.bmkeg.vpdmf.controller.queryEngineTools.ChangeEngine;
+import edu.isi.bmkeg.vpdmf.controller.queryEngineTools.ChangeEngineImpl;
 import edu.isi.bmkeg.vpdmf.dao.CoreDao;
 import edu.isi.bmkeg.vpdmf.model.definitions.VPDMf;
 
@@ -67,7 +67,7 @@ public class DeleteTriageCorpus {
 
 		CoreDao dao = de.getDigLibDao().getCoreDao();
 		
-		ChangeEngine ce = (ChangeEngine) dao.getCe();
+		ChangeEngineImpl ce = (ChangeEngineImpl) dao.getCe();
 
 		try {
 
