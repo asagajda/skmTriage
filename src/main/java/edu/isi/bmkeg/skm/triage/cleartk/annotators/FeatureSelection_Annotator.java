@@ -23,19 +23,32 @@
  */
 package edu.isi.bmkeg.skm.triage.cleartk.annotators;
 
-import java.util.List;
+import java.io.File;
+import java.io.IOException;
+import java.net.URI;
+import java.net.URISyntaxException;
 
+import org.apache.log4j.Logger;
 import org.apache.uima.UimaContext;
 import org.apache.uima.analysis_engine.AnalysisEngineProcessException;
 import org.apache.uima.jcas.JCas;
 import org.apache.uima.jcas.tcas.DocumentAnnotation;
 import org.apache.uima.resource.ResourceInitializationException;
-import org.cleartk.classifier.Feature;
+import org.cleartk.classifier.Instance;
 import org.cleartk.classifier.feature.extractor.CleartkExtractor;
-import org.cleartk.classifier.feature.extractor.CleartkExtractor.Count;
-import org.cleartk.classifier.feature.extractor.CleartkExtractor.Covered;
+import org.cleartk.classifier.feature.extractor.CleartkExtractor.Focus;
+import org.cleartk.classifier.feature.extractor.CleartkExtractor.Ngram;
+import org.cleartk.classifier.feature.extractor.CleartkExtractor.Preceding;
 import org.cleartk.classifier.feature.extractor.CoveredTextExtractor;
+import org.cleartk.classifier.feature.extractor.FeatureExtractor1;
+import org.cleartk.classifier.feature.function.FeatureFunctionExtractor;
+import org.cleartk.classifier.feature.function.FeatureFunctionExtractor.BaseFeatures;
+import org.cleartk.classifier.feature.function.LowerCaseFeatureFunction;
+import org.cleartk.classifier.feature.selection.MutualInformationFeatureSelectionExtractor;
+import org.cleartk.classifier.feature.transform.extractor.TfidfExtractor;
 import org.cleartk.token.type.Token;
+import org.uimafit.descriptor.ConfigurationParameter;
+
 
 /**
  * <br>
@@ -50,20 +63,32 @@ import org.cleartk.token.type.Token;
  * @author Lee Becker
  * 
  */
-public class UnigramCountAnnotator extends CategorizedFtdAnnotator {
-
-	private CleartkExtractor extractor;
+public class FeatureSelection_Annotator extends CategorizedFtdAnnotator {
+	
+	private static Logger logger = Logger.getLogger(FeatureSelection_Annotator.class);
+	
+	private MutualInformationFeatureSelectionExtractor<DocumentAnnotation, Token> selector;
+	
+	public static URI createTokenTfIdfDataURI(File outputDirectoryName, String code) {
+		File f = new File(outputDirectoryName, code + "_tfidf_extractor.dat");
+		return f.toURI();
+	}
 
 	public void initialize(UimaContext context)
 			throws ResourceInitializationException {
-		super.initialize(context);
+		
+		super.initialize(context);		
+				
+		FeatureExtractor1<Token> lowerCaseExtractor1 = new FeatureFunctionExtractor<Token>(
+				new CoveredTextExtractor<Token>(),
+				BaseFeatures.EXCLUDE,
+				new LowerCaseFeatureFunction());
 
-		//
-		// Create an extractor that gives word counts for a document
-		//
-		this.extractor = new CleartkExtractor(Token.class,
-				new CoveredTextExtractor(), 
-				new Count(new Covered()));
+		this.selector = new MutualInformationFeatureSelectionExtractor<DocumentAnnotation, Token>(
+				"unigramMutualInformation", 
+				lowerCaseExtractor1,
+				100);
+				
 	}
 
 	public void process(JCas jCas) throws AnalysisEngineProcessException {
@@ -73,20 +98,31 @@ public class UnigramCountAnnotator extends CategorizedFtdAnnotator {
 		//
 		DocumentAnnotation doc = (DocumentAnnotation) jCas
 				.getDocumentAnnotationFs();
-		List<Feature> features = this.extractor.extract(jCas, doc);
-
+				
+		Instance<Boolean> instance = new Instance<Boolean>();
+	//	instance.addAll( this.selector.extract(jCas, doc) );
+		
 		if (isTraining()) {
 			
 			// during training, get the label for this 
 			// document from the CAS
-			writeInstance(jCas, features);
+			writeInstance(jCas, instance);
 			
-		}
-		else {
+		} else {
 			
-			// during classification, use the classifier's output 
-			// to create a CAS annotation
-			createCategorizedFtdAnnotation(jCas, features);
+			// TODO: IS THIS RIGHT?
+			
+		/*	if( this.uniTfIdfUri == null ) { //|| this.biTfIdfUri == null ) {
+				throw new AnalysisEngineProcessException(new Exception("Must have instantiated TF-IDF counts"));
+			}
+			
+			TfidfExtractor<Boolean, DocumentAnnotation> extractor1 = 
+					new TfidfExtractor<Boolean, DocumentAnnotation>("unigram");
+			Instance<Boolean> instance2 = extractor1.transform(instance);*/
+			//TfidfExtractor<Boolean, DocumentAnnotation> extractor2 = 
+			//		new TfidfExtractor<Boolean, DocumentAnnotation>("biigram");
+			//Instance<Boolean> instance3 = extractor2.transform(instance2);
+			//createCategorizedFtdAnnotation(jCas, instance2.getFeatures());
 		
 		}
 		

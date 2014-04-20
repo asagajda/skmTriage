@@ -1,5 +1,5 @@
-/*
- * Copyright (c) 2012, Regents of the University of Colorado 
+/** 
+ * Copyright (c) 2010, Regents of the University of Colorado 
  * All rights reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
@@ -21,36 +21,31 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE. 
  */
-package edu.isi.bmkeg.skm.triage.cleartk.timeExample.eval;
 
-import org.cleartk.eval.AnnotationStatistics;
+package edu.isi.bmkeg.skm.triage.cleartk.utils;
 
-import edu.isi.bmkeg.skm.triage.cleartk.utils.CleartkInternalModelFactory;
-import edu.isi.bmkeg.triage.uimaTypes.TriageScore;
+import org.kohsuke.args4j.CmdLineException;
+import org.kohsuke.args4j.CmdLineParser;
 
 /**
  * <br>
- * Copyright (c) 2012, Regents of the University of Colorado <br>
+ * Copyright (c) 2010, Regents of the University of Colorado <br>
  * All rights reserved.
  * 
- * @author Steven Bethard
+ * @author Philip Ogren
  */
-public class TriagedDocumentModelInfo extends ModelInfo<TriageScore> {
 
-  public TriagedDocumentModelInfo(
-      String annotatedFeatureName,
-      CleartkInternalModelFactory modelFactory,
-      String[] trainingArguments) {
-    super(
-    		TriageScore.class,
-        annotatedFeatureName,
-        AnnotationStatistics.<TriageScore> annotationToSpan(),
-        modelFactory,
-        trainingArguments);
-  }
+public abstract class Options_ImplBase {
 
-  public TriagedDocumentModelInfo(String annotatedFeatureName, CleartkInternalModelFactory modelFactory) {
-    this(annotatedFeatureName, modelFactory, new String[0]);
+  public void parseOptions(String[] args) {
+    CmdLineParser parser = new CmdLineParser(this);
+    try {
+      parser.parseArgument(args);
+    } catch (CmdLineException e) {
+      e.printStackTrace();
+      parser.printUsage(System.err);
+      System.exit(1);
+    }
   }
 
 }

@@ -1,14 +1,12 @@
 package edu.isi.bmkeg.skm.triage.bin;
 
-import java.sql.ResultSet;
-
 import org.apache.log4j.Logger;
-import org.cleartk.util.Options_ImplBase;
 import org.kohsuke.args4j.CmdLineException;
 import org.kohsuke.args4j.CmdLineParser;
 import org.kohsuke.args4j.Option;
 
 import edu.isi.bmkeg.digitalLibrary.controller.DigitalLibraryEngine;
+import edu.isi.bmkeg.skm.triage.cleartk.utils.Options_ImplBase;
 import edu.isi.bmkeg.vpdmf.controller.queryEngineTools.ChangeEngineImpl;
 import edu.isi.bmkeg.vpdmf.dao.CoreDao;
 import edu.isi.bmkeg.vpdmf.model.definitions.VPDMf;
@@ -29,6 +27,9 @@ public class DeleteTriageCorpus {
 		@Option(name = "-db", usage = "Database name", required = true, metaVar = "DBNAME")
 		public String dbName = "";
 
+		@Option(name = "-wd", usage = "Working directory", required = true, metaVar  = "WDIR")
+		public String workingDirectory = "";
+		
 	}
 
 	private static Logger logger = Logger.getLogger(DeleteTriageCorpus.class);
@@ -63,7 +64,9 @@ public class DeleteTriageCorpus {
 		DigitalLibraryEngine de = null;
 
 		de = new DigitalLibraryEngine();
-		de.initializeVpdmfDao(options.login, options.password, options.dbName);
+		de.initializeVpdmfDao(
+				options.login, options.password, 
+				options.dbName, options.workingDirectory);
 
 		CoreDao dao = de.getDigLibDao().getCoreDao();
 		

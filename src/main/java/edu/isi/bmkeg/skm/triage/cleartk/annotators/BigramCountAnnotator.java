@@ -37,7 +37,7 @@ import org.cleartk.classifier.Feature;
 import org.cleartk.classifier.feature.extractor.CleartkExtractor;
 import org.cleartk.classifier.feature.extractor.CleartkExtractor.Covered;
 import org.cleartk.classifier.feature.extractor.CleartkExtractor.Ngrams;
-import org.cleartk.classifier.feature.extractor.simple.CoveredTextExtractor;
+import org.cleartk.classifier.feature.extractor.CoveredTextExtractor;
 import org.cleartk.token.type.Token;
 
 /**
@@ -55,7 +55,7 @@ import org.cleartk.token.type.Token;
  */
 public class BigramCountAnnotator extends CategorizedFtdAnnotator {
 
-	private CleartkExtractor extractor;
+	private CleartkExtractor<DocumentAnnotation, Token> extractor;
 
 	public void initialize(UimaContext context)
 			throws ResourceInitializationException {
@@ -64,8 +64,8 @@ public class BigramCountAnnotator extends CategorizedFtdAnnotator {
 		//
 		// Create an extractor that gives word counts for a document
 		//
-		this.extractor = new CleartkExtractor(Token.class,
-		        new CoveredTextExtractor(),
+		this.extractor = new CleartkExtractor<DocumentAnnotation, Token>(Token.class,
+		        new CoveredTextExtractor<Token>(),
 		        new Ngrams(2, new Covered())
 		);
 		   

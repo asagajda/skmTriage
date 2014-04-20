@@ -27,7 +27,7 @@ public class _08_RunDeletionFunctionsTest {
 	
 	ApplicationContext ctx;
 	
-	String login, password, dbUrl;
+	String login, password, dbUrl, workingDirectory;
 	String corpusName;
 	File archiveFile, pmidFile_allChecked, triageCodes, pdfDir, pdfDir2;
 	VPDMfKnowledgeBaseBuilder builder;
@@ -48,7 +48,7 @@ public class _08_RunDeletionFunctionsTest {
 		login = prop.getDbUser();
 		password = prop.getDbPassword();
 		dbUrl = prop.getDbUrl();
-		String wd = prop.getWorkingDirectory();
+		workingDirectory = prop.getWorkingDirectory();
 		
 		int l = dbUrl.lastIndexOf("/");
 		if (l != -1)
@@ -87,7 +87,7 @@ public class _08_RunDeletionFunctionsTest {
 		}
 	
 		te = new TriageEngine();
-		te.initializeVpdmfDao(login, password, dbUrl);
+		te.initializeVpdmfDao(login, password, dbUrl, workingDirectory);
 			
 		corpusName = "TriageCorpus";
 	

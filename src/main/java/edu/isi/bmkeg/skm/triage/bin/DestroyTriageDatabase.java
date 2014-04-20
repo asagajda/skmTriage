@@ -4,11 +4,11 @@ import java.io.File;
 import java.net.URL;
 
 import org.apache.log4j.Logger;
-import org.cleartk.util.Options_ImplBase;
 import org.kohsuke.args4j.CmdLineException;
 import org.kohsuke.args4j.CmdLineParser;
 import org.kohsuke.args4j.Option;
 
+import edu.isi.bmkeg.skm.triage.cleartk.utils.Options_ImplBase;
 import edu.isi.bmkeg.vpdmf.controller.VPDMfKnowledgeBaseBuilder;
 
 public class DestroyTriageDatabase {

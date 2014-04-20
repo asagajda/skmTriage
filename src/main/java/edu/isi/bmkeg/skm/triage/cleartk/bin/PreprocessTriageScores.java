@@ -4,14 +4,8 @@ import java.io.File;
 
 import org.apache.uima.collection.CollectionReader;
 import org.apache.uima.resource.metadata.TypeSystemDescription;
-import org.cleartk.classifier.jar.DefaultDataWriterFactory;
-import org.cleartk.classifier.jar.DirectoryDataWriterFactory;
-import org.cleartk.classifier.jar.JarClassifierBuilder;
-import org.cleartk.classifier.libsvm.LIBSVMStringOutcomeDataWriter;
 import org.cleartk.syntax.opennlp.SentenceAnnotator;
-import org.cleartk.token.stem.snowball.DefaultSnowballStemmer;
 import org.cleartk.token.tokenizer.TokenAnnotator;
-import org.cleartk.util.Options_ImplBase;
 import org.kohsuke.args4j.Option;
 import org.uimafit.factory.AggregateBuilder;
 import org.uimafit.factory.AnalysisEngineFactory;
@@ -21,7 +15,7 @@ import org.uimafit.pipeline.SimplePipeline;
 
 import edu.isi.bmkeg.skm.triage.cleartk.annotators.EvaluationPreparer;
 import edu.isi.bmkeg.skm.triage.cleartk.cr.TriageScoreCollectionReader;
-
+import edu.isi.bmkeg.skm.triage.cleartk.utils.Options_ImplBase;
 
 public class PreprocessTriageScores {
 
@@ -48,6 +42,9 @@ public class PreprocessTriageScores {
 
 		@Option(name = "-db", usage = "Database name")
 		public String dbName = "";
+		
+		@Option(name = "-wd", usage = "Working Directory")
+		public File workingDirectory;
 
 	}
 
@@ -69,7 +66,7 @@ public class PreprocessTriageScores {
 		long startTime = System.currentTimeMillis();
 
 		TypeSystemDescription typeSystem = TypeSystemDescriptionFactory
-				.createTypeSystemDescription("uimaTypes.triage",
+				.createTypeSystemDescription("uimaTypes.vpdmf-triage",
 						"edu.isi.bmkeg.skm.cleartk.TypeSystem");
 		
 		CollectionReader cr = CollectionReaderFactory.createCollectionReader(
@@ -79,6 +76,7 @@ public class PreprocessTriageScores {
 				TriageScoreCollectionReader.LOGIN, options.login, 
 				TriageScoreCollectionReader.PASSWORD, options.password, 
 				TriageScoreCollectionReader.DB_URL, options.dbName,
+				TriageScoreCollectionReader.WORKING_DIRECTORY, options.workingDirectory,
 				TriageScoreCollectionReader.SKIP_UNKNOWNS, true);
 		
 

@@ -111,7 +111,7 @@ public abstract class CrossValidationEvaluation extends
 		
 	}
 
-	public void runMain() throws Exception {
+	public AnnotationStatistics<String> runMain() throws Exception {
 
 		if( nFolds == 0 ) 
 			throw new Exception("Number of folds cannot be 0");
@@ -128,7 +128,7 @@ public abstract class CrossValidationEvaluation extends
 		//
 		// Runs the cross validation 
 		//
-//		this.mode = AnnotatorMode.TRAIN;
+		//this.mode = AnnotatorMode.TRAIN;
 		List<AnnotationStatistics<String>> foldStats = this
 				.crossValidation(this.trainIds, this.nFolds);
 		AnnotationStatistics<String> crossValidationStats = AnnotationStatistics
@@ -141,15 +141,45 @@ public abstract class CrossValidationEvaluation extends
 		System.out.println();
 
 		// Run Holdout Set
-//		this.mode = AnnotatorMode.TEST;
+		//this.mode = AnnotatorMode.TEST;
 		AnnotationStatistics<String> holdoutStats = this.trainAndTest(
 				this.trainIds, this.testIds);
 		System.out.println("Holdout Set Results:");
 		System.out.print(holdoutStats);
 		System.out.println();
 		System.out.println(holdoutStats.confusions());
+		
+		return holdoutStats;
+		
 	}
 
+	public AnnotationStatistics<String> runTrainAndTestOnly() throws Exception {
+
+		if( nFolds == 0 ) 
+			throw new Exception("Number of folds cannot be 0");
+		
+		File trainingDir = new File (this.dataDirectory.getPath() + "/train");
+		File testingDir = new File (this.dataDirectory.getPath() + "/test");
+
+		List<File> trainFiles = getFilesFromDirectory(trainingDir);
+		List<File> testFiles = getFilesFromDirectory(testingDir);
+
+		this.trainIds = this.loadIdsFromFiles(trainFiles);
+		this.testIds = this.loadIdsFromFiles(testFiles);
+
+		// Run Holdout Set
+		//this.mode = AnnotatorMode.TEST;
+		AnnotationStatistics<String> holdoutStats = this.trainAndTest(
+				this.trainIds, this.testIds);
+		System.out.println("Holdout Set Results:");
+		System.out.print(holdoutStats);
+		System.out.println();
+		System.out.println(holdoutStats.confusions());
+		
+		return holdoutStats;
+		
+	}
+	
 	public List<Integer> loadIdsFromFiles(List<File> files)
 			throws FileNotFoundException, IOException {
 		
@@ -179,7 +209,8 @@ public abstract class CrossValidationEvaluation extends
 			throws Exception {
 		
 		TypeSystemDescription typeSystem = TypeSystemDescriptionFactory
-				.createTypeSystemDescription("edu.isi.bmkeg.skm.cleartk.TypeSystem");
+				.createTypeSystemDescription("uimaTypes.vpdmf-triage",
+						"edu.isi.bmkeg.skm.cleartk.TypeSystem");
 		
 		Integer[] filterIds = items.toArray(new Integer[]{});
 		

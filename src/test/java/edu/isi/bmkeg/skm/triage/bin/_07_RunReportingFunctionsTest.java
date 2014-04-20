@@ -24,7 +24,7 @@ public class _07_RunReportingFunctionsTest {
 	
 	ApplicationContext ctx;
 	
-	String login, password, dbUrl;
+	String login, password, dbUrl, workingDirectory;
 	String corpusName;
 	File archiveFile, pmidFile_allChecked, triageCodes, pdfDir, pdfDir2;
 	VPDMfKnowledgeBaseBuilder builder;
@@ -45,7 +45,7 @@ public class _07_RunReportingFunctionsTest {
 		login = prop.getDbUser();
 		password = prop.getDbPassword();
 		dbUrl = prop.getDbUrl();
-		String wd = prop.getWorkingDirectory();
+		workingDirectory = prop.getWorkingDirectory();
 		
 		int l = dbUrl.lastIndexOf("/");
 		if (l != -1)
@@ -83,7 +83,7 @@ public class _07_RunReportingFunctionsTest {
 			builder.buildDatabaseFromArchive();
 	
 			te = new TriageEngine();
-			te.initializeVpdmfDao(login, password, dbUrl);
+			te.initializeVpdmfDao(login, password, dbUrl, workingDirectory);
 			te.getDigLibDao().getCoreDao().connectToDb();
 			
 			corpusName = "TriageCorpus";

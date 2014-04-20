@@ -48,6 +48,9 @@ public class DeleteTriageScoresFromCodeFile {
 
 		@Option(name = "-db", usage = "Database name", required = true, metaVar  = "DBNAME")
 		public String dbName = "";
+
+		@Option(name = "-wd", usage = "Working directory", required = true, metaVar  = "WDIR")
+		public String workingDirectory = "";
 		
 	}
 
@@ -62,7 +65,9 @@ public class DeleteTriageScoresFromCodeFile {
 		parser.parseArgument(args);
 
 		TriageEngine te = new TriageEngine();
-		te.initializeVpdmfDao(options.login, options.password, options.dbName);
+		te.initializeVpdmfDao(
+				options.login, options.password, 
+				options.dbName, options.workingDirectory);
 
 		try {
 

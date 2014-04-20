@@ -30,7 +30,7 @@ import java.net.URISyntaxException;
 import org.apache.uima.analysis_engine.AnalysisEngineProcessException;
 import org.apache.uima.cas.CASException;
 import org.apache.uima.jcas.JCas;
-import org.cleartk.util.ViewURIUtil;
+import org.cleartk.util.ViewUriUtil;
 import org.uimafit.component.JCasAnnotator_ImplBase;
 
 import edu.isi.bmkeg.skm.cleartk.type.CatorgorizedFtdText;
@@ -51,7 +51,7 @@ public class GoldDocumentCategoryAnnotator extends JCasAnnotator_ImplBase {
   @Override
   public void process(JCas jCas) throws AnalysisEngineProcessException {
     try {
-      JCas uriView = jCas.getView(ViewURIUtil.URI);
+      JCas uriView = jCas.getView(ViewUriUtil.URI);
       URI uri = new URI(uriView.getSofaDataURI());
       File file = new File(uri.getPath());
 

@@ -99,9 +99,9 @@ public class TriageEngine extends DigitalLibraryEngine
 	// High-level API Functions
 	// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 	public void buildTriageCorpusFromPdfFileOrDir(TriageCorpus tc,
-			File pdfFileOrDir, File codeFile) throws Exception {
+			File pdfFileOrDir, File codeFile, boolean skip) throws Exception {
 
-		this.insertPmidPdfFileOrDir(pdfFileOrDir);
+		this.insertPmidPdfFileOrDir(pdfFileOrDir, skip);
 
 		Map<Integer, String> codeList = this.compileCodeList(pdfFileOrDir);
 		if (codeFile != null)
@@ -305,10 +305,10 @@ public class TriageEngine extends DigitalLibraryEngine
 	/**
 	 * Builds dao objects to input and output data to a VPDMf store.
 	 */
-	public void initializeVpdmfDao(String login, String password, String dbName)
+	public void initializeVpdmfDao(String login, String password, String dbName, String workingDirectory)
 			throws Exception {
 
-		super.initializeVpdmfDao(login, password, dbName);
+		super.initializeVpdmfDao(login, password, dbName, workingDirectory);
 
 		CoreDao coreDao = this.getFtdDao().getCoreDao();
 

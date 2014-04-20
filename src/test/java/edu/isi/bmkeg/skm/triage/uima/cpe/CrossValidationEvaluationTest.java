@@ -3,14 +3,12 @@ package edu.isi.bmkeg.skm.triage.uima.cpe;
 import java.io.File;
 import java.net.URL;
 
-import org.cleartk.classifier.liblinear.LIBLINEARBooleanOutcomeDataWriter;
-import org.cleartk.classifier.libsvm.LIBSVMBooleanOutcomeDataWriter;
+import org.cleartk.classifier.libsvm.LibSvmBooleanOutcomeDataWriter;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
 import edu.isi.bmkeg.skm.triage.cleartk.instrinsicEval.CrossValEval_BigramCount;
-import edu.isi.bmkeg.skm.triage.cleartk.instrinsicEval.CrossValEval_TfIdfCentroid;
 import edu.isi.bmkeg.skm.triage.cleartk.instrinsicEval.CrossValEval_Uni_and_BigramCount;
 import edu.isi.bmkeg.skm.triage.cleartk.instrinsicEval.CrossValEval_UnigramCount;
 import edu.isi.bmkeg.skm.triage.cleartk.instrinsicEval.SearchTermsBaselineEvaluation;
@@ -45,26 +43,13 @@ public class CrossValidationEvaluationTest {
 	}
 	
 	@Test
-	public final void testTrainTfIdf() throws Exception {
-		
-		String[] args = new String[] { 
-				"-data", dataDir.getPath(), 
-				"-nFolds", "2", 
-				"-base", outputDir.getPath()
-				};
-
-		CrossValEval_TfIdfCentroid.main(args);
-		
-	}
-	
-	@Test
 	public final void testTrainUnigram() throws Exception {
 		
 		String[] args = new String[] { 
 				"-data", dataDir.getPath(), 
 				"-nFolds", "3", 
 				"-base", outputDir.getPath(),
-				"-data-writer", LIBSVMBooleanOutcomeDataWriter.class.getName()
+				"-data-writer", LibSvmBooleanOutcomeDataWriter.class.getName()
 				};
 
 		CrossValEval_UnigramCount.main(args);
@@ -78,7 +63,7 @@ public class CrossValidationEvaluationTest {
 				"-data", dataDir.getPath(), 
 				"-nFolds", "3", 
 				"-base", outputDir.getPath(),
-				"-data-writer", LIBLINEARBooleanOutcomeDataWriter.class.getName(),
+//				"-data-writer", LibLINEARBooleanOutcomeDataWriter.class.getName(),
 				"-training-args", "-s", "-training-args", "1"
 				};
 

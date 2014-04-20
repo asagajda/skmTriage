@@ -48,7 +48,10 @@ public class UpdateTriageCorpusFromFile {
 
 		@Option(name = "-db", usage = "Database name", required = true, metaVar  = "DBNAME")
 		public String dbName = "";
-		
+	
+		@Option(name = "-wd", usage = "Working directory", required = true, metaVar  = "WDIR")
+		public String workingDirectory = "";
+
 	}
 
 	/**
@@ -65,7 +68,9 @@ public class UpdateTriageCorpusFromFile {
 			parser.parseArgument(args);
 			
 			TriageEngine te = new TriageEngine();
-			te.initializeVpdmfDao(options.login, options.password, options.dbName);
+			te.initializeVpdmfDao(
+					options.login, options.password, 
+					options.dbName, options.workingDirectory);
 			
 			TriageCorpus tc = te.findTriageCorpusByNameInTrans(options.corpusName);
 			if( tc == null ) {

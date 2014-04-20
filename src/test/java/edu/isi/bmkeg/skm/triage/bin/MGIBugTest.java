@@ -26,7 +26,7 @@ import edu.isi.bmkeg.vpdmf.controller.VPDMfKnowledgeBaseBuilder;
 public class MGIBugTest {
 ApplicationContext ctx;
 	
-	String login, password, dbUrl;
+	String login, password, dbUrl, workingDirectory;
 	String origUserHomeProp;
 	File archiveFile, pmidFile_allChecked, triageCodes, pdfDir, pdfDir2, pdfDir3, outDir;
 	VPDMfKnowledgeBaseBuilder builder;
@@ -44,7 +44,7 @@ ApplicationContext ctx;
 		login = prop.getDbUser();
 		password = prop.getDbPassword();
 		dbUrl = prop.getDbUrl();
-		String wd = prop.getWorkingDirectory();
+		workingDirectory = prop.getWorkingDirectory();
 		
 		int l = dbUrl.lastIndexOf("/");
 		if (l != -1)
@@ -87,7 +87,7 @@ ApplicationContext ctx;
 		builder.buildDatabaseFromArchive();
 		
 		te = new TriageEngine();
-		te.initializeVpdmfDao(login, password, dbUrl);
+		te.initializeVpdmfDao(login, password, dbUrl, workingDirectory);
 
 		origUserHomeProp = System.getProperty("user.home");
 		File homeDir = new File(outDir, "userHome");	

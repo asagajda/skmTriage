@@ -37,7 +37,7 @@ import org.cleartk.classifier.jar.DefaultDataWriterFactory;
 import org.cleartk.classifier.jar.DirectoryDataWriterFactory;
 import org.cleartk.classifier.jar.GenericJarClassifierFactory;
 import org.cleartk.classifier.jar.JarClassifierBuilder;
-import org.cleartk.classifier.libsvm.LIBSVMBooleanOutcomeDataWriter;
+import org.cleartk.classifier.libsvm.LibSvmBooleanOutcomeDataWriter;
 import org.cleartk.eval.AnnotationStatistics;
 import org.cleartk.syntax.opennlp.SentenceAnnotator;
 import org.cleartk.token.stem.snowball.DefaultSnowballStemmer;
@@ -89,7 +89,7 @@ public class CrossValEval_BigramCount extends CrossValidationEvaluation {
 		options.parseOptions(args);
 		
 		if (options.trainingArguments.size() == 0 && 
-				options.dataWriterClassName.equals(LIBSVMBooleanOutcomeDataWriter.class.getName())) {
+				options.dataWriterClassName.equals(LibSvmBooleanOutcomeDataWriter.class.getName())) {
 			options.trainingArguments  = Arrays.asList("-t", "0");
 		}
 
@@ -137,6 +137,7 @@ public class CrossValEval_BigramCount extends CrossValidationEvaluation {
 				.createPrimitiveDescription(GoldDocumentCategoryAnnotator.class));
 		
 		// Simple bigram count annotator
+		// org.cleartk.classifier.libsvm.LibSvmBooleanOutcomeDataWriter
 	    builder.add(AnalysisEngineFactory.createPrimitiveDescription(
 	    		BigramCountAnnotator.class,
 	    		CleartkAnnotator.PARAM_IS_TRAINING, true,

@@ -75,6 +75,13 @@ public class CitationAbstractCollectionReader extends CollectionReader_ImplBase 
 					"dbUrl");
 	@ConfigurationParameter(mandatory = false, description = "The Digital Library URL")
 	protected String dbUrl;
+
+	public static final String WORKING_DIRECTORY = ConfigurationParameterFactory
+			.createConfigurationParameterName(CitationAbstractCollectionReader.class,
+					"workingDirectory");
+	@ConfigurationParameter(mandatory = false, description = "The Digital Library URL")
+	protected String workingDirectory;
+	
 	protected ResultSet rs;
 
 	protected long startTime, endTime;
@@ -87,7 +94,8 @@ public class CitationAbstractCollectionReader extends CollectionReader_ImplBase 
 
 	public static CollectionReader load(
 			String corpusName, String login,
-			String password, String dbName)
+			String password, String dbName,
+			String workingDirectory)
 			throws ResourceInitializationException {
 
 		TypeSystemDescription typeSystem = TypeSystemDescriptionFactory
@@ -98,7 +106,8 @@ public class CitationAbstractCollectionReader extends CollectionReader_ImplBase 
 				CORPUS_NAME, corpusName,
 				LOGIN, login, 
 				PASSWORD, password, 
-				DB_URL, dbName);
+				DB_URL, dbName, 
+				WORKING_DIRECTORY, workingDirectory);
 	
 	}
 	
@@ -112,11 +121,12 @@ public class CitationAbstractCollectionReader extends CollectionReader_ImplBase 
 		login = (String) getConfigParameterValue(LOGIN);
 		password = (String) getConfigParameterValue(PASSWORD);
 		dbUrl = (String) getConfigParameterValue(DB_URL);
-
+		workingDirectory = (String) getConfigParameterValue(WORKING_DIRECTORY);
+		
 		try {
 
 			te = new TriageEngine();
-			te.initializeVpdmfDao(login, password, dbUrl);
+			te.initializeVpdmfDao(login, password, dbUrl, workingDirectory);
 			
 			ArticleCitation_qo acQo = new ArticleCitation_qo();
 			Corpus_qo cQo = new Corpus_qo();

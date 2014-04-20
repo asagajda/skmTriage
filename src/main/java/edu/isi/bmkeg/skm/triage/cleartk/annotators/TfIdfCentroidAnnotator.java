@@ -41,10 +41,9 @@ import org.cleartk.classifier.Feature;
 import org.cleartk.classifier.Instance;
 import org.cleartk.classifier.feature.extractor.CleartkExtractor;
 import org.cleartk.classifier.feature.extractor.CleartkExtractorException;
-import org.cleartk.classifier.feature.extractor.simple.CombinedExtractor;
-import org.cleartk.classifier.feature.extractor.simple.CoveredTextExtractor;
-import org.cleartk.classifier.feature.extractor.simple.SimpleFeatureExtractor;
-//import org.cleartk.classifier.feature.transform.extractor.CentroidTfidfSimilarityExtractor;
+import org.cleartk.classifier.feature.extractor.CombinedExtractor1;
+import org.cleartk.classifier.feature.extractor.CoveredTextExtractor;
+import org.cleartk.classifier.feature.extractor.FeatureExtractor1;
 import org.cleartk.classifier.feature.transform.extractor.MinMaxNormalizationExtractor;
 import org.cleartk.classifier.feature.transform.extractor.TfidfExtractor;
 import org.cleartk.classifier.feature.transform.extractor.ZeroMeanUnitStddevExtractor;
@@ -63,8 +62,8 @@ import org.uimafit.util.JCasUtil;
  * 
  * 
  * This class demonstrates how to write a new CleartkAnnotator. Like the
- * {@link UnigramCountAnnotator}, this class is used for building
- * and categorizing documents according to their Usenet group. The feature
+ * {@link UnigramCountAnnotator}, this class is used for building and
+ * categorizing documents according to their Usenet group. The feature
  * extraction flow illustrates how to extract more complex features that require
  * aggregating statistics for transformation prior to training and
  * classification.
@@ -74,39 +73,39 @@ import org.uimafit.util.JCasUtil;
  */
 public class TfIdfCentroidAnnotator extends CategorizedFtdAnnotator {
 
-	private static Logger logger = Logger.getLogger(TfIdfCentroidAnnotator.class);
-	
-	public static final String PARAM_TF_IDF_URI = ConfigurationParameterFactory
-			.createConfigurationParameterName(
-					TfIdfCentroidAnnotator.class, "tfIdfUri");
+	private static Logger logger = Logger
+			.getLogger(TfIdfCentroidAnnotator.class);
 
-	@ConfigurationParameter(mandatory = false, description = "provides a URI where the tf*idf map " +
-			"will be written")
+	public static final String PARAM_TF_IDF_URI = ConfigurationParameterFactory
+			.createConfigurationParameterName(TfIdfCentroidAnnotator.class,
+					"tfIdfUri");
+
+	@ConfigurationParameter(mandatory = false, description = "provides a URI where the tf*idf map "
+			+ "will be written")
 	protected URI tfIdfUri;
 
 	public static final String PARAM_TF_IDF_CENTROID_SIMILARITY_URI = ConfigurationParameterFactory
-			.createConfigurationParameterName(
-					TfIdfCentroidAnnotator.class,
+			.createConfigurationParameterName(TfIdfCentroidAnnotator.class,
 					"tfIdfCentroidSimilarityUri");
 
-	@ConfigurationParameter(mandatory = false, description = "provides a URI where the tf*idf " +
-			"centroid data will be written")
+	@ConfigurationParameter(mandatory = false, description = "provides a URI where the tf*idf "
+			+ "centroid data will be written")
 	protected URI tfIdfCentroidSimilarityUri;
 
 	public static final String PARAM_ZMUS_URI = ConfigurationParameterFactory
-			.createConfigurationParameterName(
-					TfIdfCentroidAnnotator.class, "zmusUri");
+			.createConfigurationParameterName(TfIdfCentroidAnnotator.class,
+					"zmusUri");
 
-	@ConfigurationParameter(mandatory = false, description = "provides a URI where the Zero Mean, " +
-			"Unit Std Dev feature data will be written")
+	@ConfigurationParameter(mandatory = false, description = "provides a URI where the Zero Mean, "
+			+ "Unit Std Dev feature data will be written")
 	protected URI zmusUri;
 
 	public static final String PARAM_MINMAX_URI = ConfigurationParameterFactory
-			.createConfigurationParameterName(
-					TfIdfCentroidAnnotator.class, "minmaxUri");
+			.createConfigurationParameterName(TfIdfCentroidAnnotator.class,
+					"minmaxUri");
 
-	@ConfigurationParameter(mandatory = false, description = "provides a URI where the min-max feature " +
-			"normalizaation data will be written")
+	@ConfigurationParameter(mandatory = false, description = "provides a URI where the min-max feature "
+			+ "normalization data will be written")
 	protected URI minmaxUri;
 
 	public static final String PREDICTION_VIEW_NAME = "ExampleDocumentClassificationPredictionView";
@@ -119,7 +118,7 @@ public class TfIdfCentroidAnnotator extends CategorizedFtdAnnotator {
 
 	public static final String MINMAX_EXTRACTOR_KEY = "MinmaxLengthFeatures";
 
-	private CombinedExtractor extractor;
+	private CombinedExtractor1 extractor;
 
 	public static URI createTokenTfIdfDataURI(File outputDirectoryName) {
 		File f = new File(outputDirectoryName, TFIDF_EXTRACTOR_KEY
@@ -145,38 +144,40 @@ public class TfIdfCentroidAnnotator extends CategorizedFtdAnnotator {
 		return f.toURI();
 	}
 
-	// I excluded the CentroidTfidfSimilarityExtractor because it was causing the
-	// LIBSVM classifier to not terminate. I have no idea why this happened but 
+	// I excluded the CentroidTfidfSimilarityExtractor because it was causing
+	// the
+	// LIBSVM classifier to not terminate. I have no idea why this happened but
 	// excluding that extractor fixed that problem [MT]
 	public void initialize(UimaContext context)
 			throws ResourceInitializationException {
 		super.initialize(context);
 
 		try {
-			TfidfExtractor<String> tfIdfExtractor = initTfIdfExtractor();
-//			CentroidTfidfSimilarityExtractor<String> simExtractor = initCentroidTfIdfSimilarityExtractor();
-			ZeroMeanUnitStddevExtractor<String> zmusExtractor = initZmusExtractor();
-			MinMaxNormalizationExtractor<String> minmaxExtractor = initMinMaxExtractor();
-			
-			this.extractor = new CombinedExtractor(
+			TfidfExtractor<String,Token> tfIdfExtractor = initTfIdfExtractor();
+			// CentroidTfidfSimilarityExtractor<String> simExtractor =
+			// initCentroidTfIdfSimilarityExtractor();
+			ZeroMeanUnitStddevExtractor<String,Token> zmusExtractor = initZmusExtractor();
+			MinMaxNormalizationExtractor<String,Token> minmaxExtractor = initMinMaxExtractor();
+
+			this.extractor = new CombinedExtractor1(
 					tfIdfExtractor,
-//					simExtractor, 
+					// simExtractor,
 					zmusExtractor, 
-					minmaxExtractor
-					);
+					minmaxExtractor);
+		
 		} catch (IOException e) {
 			throw new ResourceInitializationException(e);
 		}
+		
 	}
 
-	private TfidfExtractor<String> initTfIdfExtractor() throws IOException {
+	private TfidfExtractor<String, Token> initTfIdfExtractor() throws IOException {
 		CleartkExtractor countsExtractor = new CleartkExtractor(Token.class,
 				new CoveredTextExtractor(), new CleartkExtractor.Count(
 						new CleartkExtractor.Covered()));
 
-		TfidfExtractor<String> tfIdfExtractor = new TfidfExtractor<String>(
-				TfIdfCentroidAnnotator.TFIDF_EXTRACTOR_KEY,
-				countsExtractor);
+		TfidfExtractor<String, Token> tfIdfExtractor = new TfidfExtractor<String, Token>(
+				TfIdfCentroidAnnotator.TFIDF_EXTRACTOR_KEY, countsExtractor);
 
 		if (this.tfIdfUri != null) {
 			tfIdfExtractor.load(this.tfIdfUri);
@@ -184,29 +185,31 @@ public class TfIdfCentroidAnnotator extends CategorizedFtdAnnotator {
 		return tfIdfExtractor;
 	}
 
-//	private CentroidTfidfSimilarityExtractor<String> initCentroidTfIdfSimilarityExtractor()
-//			throws IOException {
-//		CleartkExtractor countsExtractor = new CleartkExtractor(Token.class,
-//				new CoveredTextExtractor(), new CleartkExtractor.Count(
-//						new CleartkExtractor.Covered()));
-//
-//		CentroidTfidfSimilarityExtractor<String> simExtractor = new CentroidTfidfSimilarityExtractor<String>(
-//				TfIdfCentroidAnnotator.CENTROID_TFIDF_SIM_EXTRACTOR_KEY,
-//				countsExtractor);
-//
-//		if (this.tfIdfCentroidSimilarityUri != null) {
-//			simExtractor.load(this.tfIdfCentroidSimilarityUri);
-//		}
-//		return simExtractor;
-//	}
+	// private CentroidTfidfSimilarityExtractor<String>
+	// initCentroidTfIdfSimilarityExtractor()
+	// throws IOException {
+	// CleartkExtractor countsExtractor = new CleartkExtractor(Token.class,
+	// new CoveredTextExtractor(), new CleartkExtractor.Count(
+	// new CleartkExtractor.Covered()));
+	//
+	// CentroidTfidfSimilarityExtractor<String> simExtractor = new
+	// CentroidTfidfSimilarityExtractor<String>(
+	// TfIdfCentroidAnnotator.CENTROID_TFIDF_SIM_EXTRACTOR_KEY,
+	// countsExtractor);
+	//
+	// if (this.tfIdfCentroidSimilarityUri != null) {
+	// simExtractor.load(this.tfIdfCentroidSimilarityUri);
+	// }
+	// return simExtractor;
+	// }
 
-	private ZeroMeanUnitStddevExtractor<String> initZmusExtractor()
+	private ZeroMeanUnitStddevExtractor<String, Token> initZmusExtractor()
 			throws IOException {
-		CombinedExtractor featuresToNormalizeExtractor = new CombinedExtractor(
+		CombinedExtractor1 featuresToNormalizeExtractor = new CombinedExtractor1(
 				new CountAnnotationExtractor(Sentence.class),
 				new CountAnnotationExtractor(Token.class));
 
-		ZeroMeanUnitStddevExtractor<String> zmusExtractor = new ZeroMeanUnitStddevExtractor<String>(
+		ZeroMeanUnitStddevExtractor<String, Token> zmusExtractor = new ZeroMeanUnitStddevExtractor<String, Token>(
 				ZMUS_EXTRACTOR_KEY, featuresToNormalizeExtractor);
 
 		if (this.zmusUri != null) {
@@ -216,13 +219,14 @@ public class TfIdfCentroidAnnotator extends CategorizedFtdAnnotator {
 		return zmusExtractor;
 	}
 
-	private MinMaxNormalizationExtractor<String> initMinMaxExtractor()
+	private MinMaxNormalizationExtractor<String, Token> initMinMaxExtractor()
 			throws IOException {
-		CombinedExtractor featuresToNormalizeExtractor = new CombinedExtractor(
+		CombinedExtractor1 featuresToNormalizeExtractor = new CombinedExtractor1(
 				new CountAnnotationExtractor(Sentence.class),
 				new CountAnnotationExtractor(Token.class));
 
-		MinMaxNormalizationExtractor<String> minmaxExtractor = new MinMaxNormalizationExtractor<String>(
+		MinMaxNormalizationExtractor<String, Token> minmaxExtractor = 
+				new MinMaxNormalizationExtractor<String, Token>(
 				MINMAX_EXTRACTOR_KEY, featuresToNormalizeExtractor);
 
 		if (this.minmaxUri != null) {
@@ -240,9 +244,9 @@ public class TfIdfCentroidAnnotator extends CategorizedFtdAnnotator {
 		instance.addAll(this.extractor.extract(jCas, doc));
 
 		if (isTraining()) {
-			
-			writeInstance(jCas, instance);
-			
+
+//			writeInstance(jCas, instance);
+
 		} else {
 
 			createCategorizedFtdAnnotation(jCas, instance.getFeatures());
@@ -258,8 +262,7 @@ public class TfIdfCentroidAnnotator extends CategorizedFtdAnnotator {
 				classifierJarFile.toString());
 	}
 
-	public static class CountAnnotationExtractor implements
-			SimpleFeatureExtractor {
+	public static class CountAnnotationExtractor implements FeatureExtractor1 {
 
 		@SuppressWarnings("rawtypes")
 		private Class annotationType;

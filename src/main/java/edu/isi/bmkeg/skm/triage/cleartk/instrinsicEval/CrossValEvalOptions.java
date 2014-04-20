@@ -4,9 +4,10 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.cleartk.classifier.libsvm.LIBSVMBooleanOutcomeDataWriter;
-import org.cleartk.util.Options_ImplBase;
+import org.cleartk.classifier.libsvm.LibSvmBooleanOutcomeDataWriter;
 import org.kohsuke.args4j.Option;
+
+import edu.isi.bmkeg.skm.triage.cleartk.utils.Options_ImplBase;
 
 public class CrossValEvalOptions extends Options_ImplBase {
 	
@@ -21,11 +22,23 @@ public class CrossValEvalOptions extends Options_ImplBase {
 	@Option(name = "-base", usage = "specify the directory in which to write out the trained model files")
 	public File baseDir = new File(
 			"target/document_classification/models");
-
+	
+	//
+	// LibLinearBooleanOutcomeDataWriter 
+	// LibSvmBooleanOutcomeDataWriter
+	// MalletBooleanOutcomeDataWriter 
+	// MaxentBooleanOutcomeDataWriter 
+	// SvmLightBooleanOutcomeDataWriter 
+	// TkSvmLightBooleanOutcomeDataWriter
+	// TreeKernelSvmBooleanOutcomeDataWriter
+	//
 	@Option(name = "-data-writer", usage = "specify the DataWriter class name")
-	public String dataWriterClassName = LIBSVMBooleanOutcomeDataWriter.class.getName();
+	public String dataWriterClassName = LibSvmBooleanOutcomeDataWriter.class.getName();
 	
 	@Option(name = "-training-args", usage = "specify training arguments to be passed to the learner.  For multiple values specify -ta for each - e.g. '-ta -t -ta 0'")
 	public List<String> trainingArguments = new ArrayList<String>();
 
+	@Option(name = "-feature-annotator", usage = "specify training arguments to be passed to the learner.  For multiple values specify -ta for each - e.g. '-ta -t -ta 0'")
+	public String annotatorClassName = "UnigramCountAnnotator";
+	
 }

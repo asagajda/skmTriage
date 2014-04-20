@@ -46,8 +46,7 @@ import org.apache.uima.jcas.JCas;
 import org.apache.uima.resource.ResourceInitializationException;
 import org.apache.uima.util.Progress;
 import org.apache.uima.util.ProgressImpl;
-import org.cleartk.util.ViewURIUtil;
-import org.cleartk.util.cr.linereader.LineReader;
+import org.cleartk.util.ViewUriUtil;
 import org.uimafit.component.JCasCollectionReader_ImplBase;
 import org.uimafit.component.ViewCreatorAnnotator;
 import org.uimafit.descriptor.ConfigurationParameter;
@@ -64,7 +63,7 @@ import org.uimafit.factory.initializable.InitializableFactory;
  * FilteredLineReader uses a modified SimpleLineHandler to enact the filter.
  * 
  */
-@SofaCapability(outputSofas = ViewURIUtil.URI)
+@SofaCapability(outputSofas = ViewUriUtil.URI)
 public class FilteredLineReader extends JCasCollectionReader_ImplBase {
 
 	public static final String PARAM_FILE_OR_DIRECTORY_NAME = ConfigurationParameterFactory

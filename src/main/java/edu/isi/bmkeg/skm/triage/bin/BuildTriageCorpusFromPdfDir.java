@@ -17,7 +17,6 @@ public class BuildTriageCorpusFromPdfDir {
 
 	private static Logger logger = Logger.getLogger(BuildTriageCorpusFromPdfDir.class);
 	
-	
 	public static class Options {
 
 		@Option(name = "-pdfs", usage = "Pdfs directory or file", required = true, metaVar = "PDF-DIR-OR-FILE")
@@ -41,6 +40,13 @@ public class BuildTriageCorpusFromPdfDir {
 		@Option(name = "-db", usage = "Database name", required = true, metaVar  = "DBNAME")
 		public String dbName = "";
 		
+		@Option(name = "-noSkip", usage = "No skipping existing database entries?", required = false, metaVar  = "NOSKIP")
+		public boolean noSkip = false;
+
+		@Option(name = "-wd", usage = "Working directory", required = true, metaVar  = "WDIR")
+		public String workingDirectory = "";
+
+		
 	}
 
 	/**
@@ -56,7 +62,8 @@ public class BuildTriageCorpusFromPdfDir {
 
 		parser.parseArgument(args);
 		
-		te.initializeVpdmfDao(options.login, options.password, options.dbName);
+		te.initializeVpdmfDao(options.login, 
+				options.password, options.dbName, options.workingDirectory);
 		
 		CoreDao coreDao = te.getDigLibDao().getCoreDao();
 
@@ -82,7 +89,7 @@ public class BuildTriageCorpusFromPdfDir {
 				throw new Exception("TriageCorpus " + options.corpusName + " does not exist.");
 			}
 			
-			te.buildTriageCorpusFromPdfFileOrDir(tc, options.pdfFileOrDir, options.codeList);
+			te.buildTriageCorpusFromPdfFileOrDir(tc, options.pdfFileOrDir, options.codeList, !options.noSkip);
 
 			coreDao.commitTransaction();
 			

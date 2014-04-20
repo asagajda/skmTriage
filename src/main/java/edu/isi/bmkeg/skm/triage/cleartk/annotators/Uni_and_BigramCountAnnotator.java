@@ -38,13 +38,8 @@ import org.cleartk.classifier.feature.extractor.CleartkExtractor;
 import org.cleartk.classifier.feature.extractor.CleartkExtractor.Count;
 import org.cleartk.classifier.feature.extractor.CleartkExtractor.Covered;
 import org.cleartk.classifier.feature.extractor.CleartkExtractor.Ngrams;
-import org.cleartk.classifier.feature.extractor.simple.CoveredTextExtractor;
-import org.cleartk.classifier.feature.selection.MutualInformationFeatureSelectionExtractor;
-import org.cleartk.token.type.Sentence;
+import org.cleartk.classifier.feature.extractor.CoveredTextExtractor;
 import org.cleartk.token.type.Token;
-import org.uimafit.util.JCasUtil;
-
-import edu.isi.bmkeg.skm.cleartk.type.CatorgorizedFtdText;
 
 
 /**

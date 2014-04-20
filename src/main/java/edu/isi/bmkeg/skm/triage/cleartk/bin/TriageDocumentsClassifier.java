@@ -14,7 +14,7 @@ import org.cleartk.classifier.jar.DefaultDataWriterFactory;
 import org.cleartk.classifier.jar.DirectoryDataWriterFactory;
 import org.cleartk.classifier.jar.GenericJarClassifierFactory;
 import org.cleartk.classifier.jar.JarClassifierBuilder;
-import org.cleartk.classifier.libsvm.LIBSVMBooleanOutcomeDataWriter;
+import org.cleartk.classifier.libsvm.LibSvmBooleanOutcomeDataWriter;
 import org.cleartk.syntax.opennlp.SentenceAnnotator;
 import org.cleartk.token.stem.snowball.DefaultSnowballStemmer;
 import org.cleartk.token.tokenizer.TokenAnnotator;
@@ -70,13 +70,16 @@ public class TriageDocumentsClassifier {
 
 		@Option(name = "-predict", usage = "If present will compute and update prediction scores in Triage Document. Either -train or -predict should be specified.")
 		public boolean predict = false;
+		
+		@Option(name = "-wd", usage = "Working directory", required = true, metaVar  = "WDIR")
+		public String workingDirectory = "";
 	}
 
 	public static enum AnnotatorMode {
 		TRAIN, CLASSIFY
 	}
 
-	public static String DATA_WRITER_NAME = LIBSVMBooleanOutcomeDataWriter.class
+	public static String DATA_WRITER_NAME = LibSvmBooleanOutcomeDataWriter.class
 			.getName();
 
 	public static String[] TRAINING_ARGS = new String[] { "-t", "0" };
@@ -87,6 +90,7 @@ public class TriageDocumentsClassifier {
 	public String login;
 	public String password;
 	public String dbName;
+	public String workingDirectory;
 
 	private TriageEngine te;
 	private CollectionReader cr;
@@ -117,7 +121,8 @@ public class TriageDocumentsClassifier {
 	// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 	public TriageDocumentsClassifier(String triageCorpus, String targetCorpus,
-			File modelDir, String login, String password, String dbName)
+			File modelDir, String login, String password, String dbName,
+			String workingDirectory)
 			throws Exception {
 
 		this.triageCorpus = triageCorpus;
@@ -126,15 +131,17 @@ public class TriageDocumentsClassifier {
 		this.login = login;
 		this.password = password;
 		this.dbName = dbName;
+		this.workingDirectory = workingDirectory;
+		
 		te = new TriageEngine();
-		te.initializeVpdmfDao(login, password, dbName);
+		te.initializeVpdmfDao(login, password, dbName, workingDirectory);
 
 	}
 
 	public void extractFeatures() throws Exception {
 
 		TypeSystemDescription typeSystem = TypeSystemDescriptionFactory
-				.createTypeSystemDescription("uimaTypes.triage",
+				.createTypeSystemDescription("uimaTypes.vpdmf-triage",
 						"edu.isi.bmkeg.skm.cleartk.TypeSystem");
 
 		//
@@ -163,7 +170,8 @@ public class TriageDocumentsClassifier {
 				SaveFeaturesToDbAnnotator.class,
 				SaveFeaturesToDbAnnotator.PARAM_VPDMf_LOGIN, login,
 				SaveFeaturesToDbAnnotator.PARAM_VPDMf_PASSWORD, password,
-				SaveFeaturesToDbAnnotator.PARAM_VPDMf_DBNAME, dbName));
+				SaveFeaturesToDbAnnotator.PARAM_VPDMf_DBNAME, dbName,
+				SaveFeaturesToDbAnnotator.PARAM_VPDMf_WORKINGDIR, workingDirectory));
 
 		//
 		// generate description
@@ -185,7 +193,7 @@ public class TriageDocumentsClassifier {
 	public void train() throws Exception {
 
 		TypeSystemDescription typeSystem = TypeSystemDescriptionFactory
-				.createTypeSystemDescription("uimaTypes.triage",
+				.createTypeSystemDescription("uimaTypes.vpdmf-triage",
 						"edu.isi.bmkeg.skm.cleartk.TypeSystem");
 
 		//
@@ -198,7 +206,8 @@ public class TriageDocumentsClassifier {
 				TriageScoreCollectionReader.SKIP_UNKNOWNS, true,
 				TriageScoreCollectionReader.LOGIN, login,
 				TriageScoreCollectionReader.PASSWORD, password,
-				TriageScoreCollectionReader.DB_URL, dbName);
+				TriageScoreCollectionReader.DB_URL, dbName,
+				TriageScoreCollectionReader.WORKING_DIRECTORY, this.workingDirectory);
 
 		AggregateBuilder builder = new AggregateBuilder();
 
@@ -271,7 +280,7 @@ public class TriageDocumentsClassifier {
 	public void predict() throws Exception {
 
 		TypeSystemDescription typeSystem = TypeSystemDescriptionFactory
-				.createTypeSystemDescription("uimaTypes.triage",
+				.createTypeSystemDescription("uimaTypes.vpdmf-triage",
 						"edu.isi.bmkeg.skm.cleartk.TypeSystem");
 
 		//
@@ -283,7 +292,8 @@ public class TriageDocumentsClassifier {
 				TriageScoreCollectionReader.TARGET_CORPUS_NAME, targetCorpus,
 				TriageScoreCollectionReader.LOGIN, login,
 				TriageScoreCollectionReader.PASSWORD, password,
-				TriageScoreCollectionReader.DB_URL, dbName);
+				TriageScoreCollectionReader.DB_URL, dbName,
+				TriageScoreCollectionReader.WORKING_DIRECTORY, this.workingDirectory);
 
 		AggregateBuilder builder = new AggregateBuilder();
 
@@ -414,10 +424,12 @@ public class TriageDocumentsClassifier {
 		String login = options.login;
 		String password = options.password;
 		String dbName = options.dbName;
+		String workingDirectory = options.workingDirectory;
 		boolean train = options.train;
 
 		TriageDocumentsClassifier cl = new TriageDocumentsClassifier(
-				triageCorpus, targetCorpus, modelDir, login, password, dbName);
+				triageCorpus, targetCorpus, modelDir, 
+				login, password, dbName, workingDirectory);
 
 		try {
 

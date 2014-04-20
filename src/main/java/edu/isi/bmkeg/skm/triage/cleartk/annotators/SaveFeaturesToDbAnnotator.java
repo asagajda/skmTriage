@@ -35,15 +35,14 @@ import org.cleartk.classifier.Feature;
 import org.cleartk.classifier.feature.extractor.CleartkExtractor;
 import org.cleartk.classifier.feature.extractor.CleartkExtractor.Count;
 import org.cleartk.classifier.feature.extractor.CleartkExtractor.Covered;
-import org.cleartk.classifier.feature.extractor.simple.CoveredTextExtractor;
-import org.cleartk.classifier.feature.extractor.simple.SimpleFeatureExtractor;
+import org.cleartk.classifier.feature.extractor.CoveredTextExtractor;
+import org.cleartk.classifier.feature.extractor.FeatureExtractor1;
 import org.cleartk.classifier.feature.function.FeatureFunctionExtractor;
 import org.cleartk.classifier.feature.function.LowerCaseFeatureFunction;
 import org.cleartk.classifier.feature.selection.MutualInformationFeatureSelectionExtractor;
 import org.cleartk.token.type.Token;
 import org.uimafit.component.JCasAnnotator_ImplBase;
 import org.uimafit.descriptor.ConfigurationParameter;
-import org.uimafit.descriptor.ExternalResource;
 import org.uimafit.factory.ConfigurationParameterFactory;
 import org.uimafit.util.JCasUtil;
 
@@ -78,9 +77,15 @@ public class SaveFeaturesToDbAnnotator extends JCasAnnotator_ImplBase {
 	@ConfigurationParameter(mandatory = true, description = "vpdmfDbName")
 	private String vpdmfDbName;
 
-	private SimpleFeatureExtractor extractor;
+	public static final String PARAM_VPDMf_WORKINGDIR = ConfigurationParameterFactory
+			.createConfigurationParameterName(
+					SaveFeaturesToDbAnnotator.class, "vpdmfDbName");
 
-	private MutualInformationFeatureSelectionExtractor<String> selector;
+	@ConfigurationParameter(mandatory = true, description = "vpdmfWorkingDir")
+	private String vpdmfWorkingDir;
+
+	
+	private FeatureExtractor1 extractor;
 
 	private TriageEngine triageEngine;
 
@@ -92,7 +97,7 @@ public class SaveFeaturesToDbAnnotator extends JCasAnnotator_ImplBase {
 		//
 		// Create an extractor that gives word counts for a document
 		//
-		SimpleFeatureExtractor ex1 = new FeatureFunctionExtractor(
+		FeatureExtractor1 ex1 = new FeatureFunctionExtractor(
 				new CoveredTextExtractor(), new LowerCaseFeatureFunction());
 
 		this.extractor = new CleartkExtractor(Token.class, ex1, new Count(
@@ -102,7 +107,8 @@ public class SaveFeaturesToDbAnnotator extends JCasAnnotator_ImplBase {
 
 			this.triageEngine = new TriageEngine();
 			this.triageEngine.initializeVpdmfDao(this.vpdmfLogin,
-					this.vpdmfPassword, this.vpdmfDbName);
+					this.vpdmfPassword, this.vpdmfDbName,
+					this.vpdmfWorkingDir);
 
 			this.triageEngine.getExTriageDao().getCoreDao().getCe()
 					.connectToDB();

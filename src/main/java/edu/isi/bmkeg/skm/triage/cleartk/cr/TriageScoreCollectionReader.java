@@ -1,8 +1,9 @@
 package edu.isi.bmkeg.skm.triage.cleartk.cr;
 
-import java.io.EOFException;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
 import java.io.IOException;
-import java.io.StringReader;
 import java.io.StringWriter;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -31,7 +32,7 @@ import org.uimafit.factory.ConfigurationParameterFactory;
 
 import edu.isi.bmkeg.skm.triage.controller.TriageEngine;
 import edu.isi.bmkeg.skm.triage.model.TriageCode;
-import edu.isi.bmkeg.triage.model.qo.*;
+import edu.isi.bmkeg.triage.model.qo.TriageCorpus_qo;
 import edu.isi.bmkeg.triage.uimaTypes.TriageScore;
 
 /**
@@ -93,6 +94,12 @@ public class TriageScoreCollectionReader extends JCasCollectionReader_ImplBase {
 	@ConfigurationParameter(mandatory = true, description = "Password for the Digital Library")
 	protected String password;
 
+	public static final String WORKING_DIRECTORY = ConfigurationParameterFactory
+			.createConfigurationParameterName(TriageScoreCollectionReader.class,
+					"workingDirectory");
+	@ConfigurationParameter(mandatory = true, description = "Working Directory for the Digital Library")
+	protected String workingDirectory;
+	
 	public static final String DB_URL = ConfigurationParameterFactory
 			.createConfigurationParameterName(TriageScoreCollectionReader.class,
 					"dbUrl");
@@ -132,11 +139,13 @@ public class TriageScoreCollectionReader extends JCasCollectionReader_ImplBase {
 
 			isAggregate =  (triageCorpusName == null || triageCorpusName.length() == 0);
 			triageEngine = new TriageEngine();
-			triageEngine.initializeVpdmfDao(login, password, dbUrl);	
+			triageEngine.initializeVpdmfDao(login, password, dbUrl, workingDirectory);	
 			
 			// Query based on a query constructed with SqlQueryBuilder based on the TriagedArticle view.
-			String selectSql = "SELECT DISTINCT FTD_0__FTD.pmcXml, " + 
+			String selectSql = "SELECT DISTINCT FTD_0__FTD.pmcXmlFile, " + 
 					" TriageScore_0__TriageScore.inOutCode, " +
+					" LiteratureCitation_0__LiteratureCitation.title, " +
+					" LiteratureCitation_0__LiteratureCitation.abstractText, " +
 					" TriageScore_0__TriageScore.vpdmfId, " + 
 					" TriageScore_0__TriageScore.citation_id ";
 
@@ -150,6 +159,7 @@ public class TriageScoreCollectionReader extends JCasCollectionReader_ImplBase {
 					" TargetCorpus_0__Corpus.name = '" + targetCorpusName +  "' AND " +
 					" LiteratureCitation_0__LiteratureCitation.vpdmfId=TriageScore_0__TriageScore.citation_id AND " +
 					" TargetCorpus_0__Corpus.vpdmfId=TriageScore_0__TriageScore.targetCorpus_id AND " +
+					" FTD_0__FTD.pmcLoaded=1 AND " +
 					" FTD_0__FTD.vpdmfId=LiteratureCitation_0__LiteratureCitation.fullText_id";
 			
 			if (!isAggregate) {
@@ -218,6 +228,7 @@ public class TriageScoreCollectionReader extends JCasCollectionReader_ImplBase {
 		    moveNext();
 		    
 		    pos++;
+		    //System.out.println("Processing " + pos + "th document.");
 		    
 		} catch (Exception e) {
 
@@ -276,7 +287,7 @@ public class TriageScoreCollectionReader extends JCasCollectionReader_ImplBase {
 	 * 
 	 */
 	private AggregatedScore computeAggregatedScore() throws 
-			SQLException, IOException, TransformerException {
+			SQLException, IOException, TransformerException,FileNotFoundException  {
 
 		eof = !rs.next();
 		
@@ -286,9 +297,19 @@ public class TriageScoreCollectionReader extends JCasCollectionReader_ImplBase {
 		Long vpdmfId = rs.getLong("vpdmfId");
 		Long citation_id = rs.getLong("citation_id");
 		String inOutCode = rs.getString("inOutCode");
-		String pmcXml = rs.getString("pmcXml");
+		String pmcXmlPath = rs.getString("pmcXmlFile");
+		String title = rs.getString("title");
+		String abst = rs.getString("abstractText");
 		
-		StringReader inputReader = new StringReader(pmcXml);
+		if( pmcXmlPath == null || pmcXmlPath.equals("null") )
+			throw new FileNotFoundException("Can't find " + pmcXmlPath );
+		
+		File pmcXmlFile = new File( this.workingDirectory + "/pdfs/" + pmcXmlPath);
+		
+		if( !pmcXmlFile.exists() )
+			throw new FileNotFoundException("Can't find " + pmcXmlFile.getPath() + ". Please check underlying database.");
+		
+		FileReader inputReader = new FileReader(pmcXmlFile);
 		StringWriter outputWriter = new StringWriter();
 		
 		TransformerFactory tf = TransformerFactory.newInstance();
@@ -305,7 +326,10 @@ public class TriageScoreCollectionReader extends JCasCollectionReader_ImplBase {
 				
 		Document doc = Jsoup.parse(html);
 		HtmlToPlainText formatter = new HtmlToPlainText();
-        String plainText = formatter.getPlainText(doc);
+
+		String plainText = title + "\n\n"  
+				+ abst + "\n\n"
+        		+ formatter.getPlainText(doc);
 		
 		AggregatedScore as = new AggregatedScore(
 				vpdmfId, citation_id, inOutCode, plainText
