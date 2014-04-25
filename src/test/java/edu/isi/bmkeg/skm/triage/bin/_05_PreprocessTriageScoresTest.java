@@ -23,7 +23,7 @@ import edu.isi.bmkeg.vpdmf.controller.VPDMfKnowledgeBaseBuilder;
 public class _05_PreprocessTriageScoresTest {
 ApplicationContext ctx;
 	
-	String login, password, dbUrl;
+	String login, password, dbUrl, wd;
 	String triageCorpusName, targetCorpusName;
 	File archiveFile, pmidFile_allChecked, triageCodes, pdfDir, outDir;
 	VPDMfKnowledgeBaseBuilder builder;
@@ -41,7 +41,7 @@ ApplicationContext ctx;
 		login = prop.getDbUser();
 		password = prop.getDbPassword();
 		dbUrl = prop.getDbUrl();
-		String wd = prop.getWorkingDirectory();
+		wd = prop.getWorkingDirectory();
 		
 		int l = dbUrl.lastIndexOf("/");
 		if (l != -1)
@@ -88,7 +88,8 @@ ApplicationContext ctx;
 				"-owner", "Gully Burns",
 				"-db", dbUrl, 
 				"-l", login, 
-				"-p", password 
+				"-p", password, 
+				"-wd", wd  
 				};
 
 		EditTriageCorpus.main(args);
@@ -101,7 +102,8 @@ ApplicationContext ctx;
 				"-owner", "Gully Burns",
 				"-db", dbUrl, 
 				"-l", login, 
-				"-p", password 
+				"-p", password, 
+				"-wd", wd 
 				};
 
 		EditArticleCorpus.main(args);
@@ -112,7 +114,8 @@ ApplicationContext ctx;
 				"-codeList", triageCodes.getPath(), 
 				"-db", dbUrl, 
 				"-l", login, 
-				"-p", password
+				"-p", password, 
+				"-wd", wd
 				};
 
 		BuildTriageCorpusFromPdfDir.main(args);
@@ -136,7 +139,8 @@ ApplicationContext ctx;
 				 "-prop", "0.1",
 				 "-l", login, 
 				 "-p", password,
-				 "-db", dbUrl
+				 "-db", dbUrl, 
+				 "-wd", wd
 				};
 
 		PreprocessTriageScores.main(args);

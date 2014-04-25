@@ -22,7 +22,7 @@ public class _01_BuildTriageDatabaseTest {
 	
 	ApplicationContext ctx;
 	
-	String login, password, dbUrl;
+	String login, password, dbUrl, wd;
 	File archiveFile, pmidFile_allChecked, triageCodes, pdfDir;
 	VPDMfKnowledgeBaseBuilder builder;
 	
@@ -39,7 +39,7 @@ public class _01_BuildTriageDatabaseTest {
 		login = prop.getDbUser();
 		password = prop.getDbPassword();
 		dbUrl = prop.getDbUrl();
-		String wd = prop.getWorkingDirectory();
+		wd = prop.getWorkingDirectory();
 		
 		pdfDir = new File( wd + "/pdfs" );
 		
@@ -79,7 +79,7 @@ public class _01_BuildTriageDatabaseTest {
 	public final void testBuildTriageCorpusFromScratch() throws Exception {
 
 		String[] args = new String[] { 
-				"-db", dbUrl, "-l", login, "-p", password
+				"-db", dbUrl, "-l", login, "-p", password, "-wd", wd
 				};
 
 		BuildTriageDatabase.main(args);

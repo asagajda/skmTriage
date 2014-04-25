@@ -93,7 +93,8 @@ public class _03_BuildTriageCorpusFromPdfDirTest {
 				"-owner", "Gully Burns",
 				"-db", dbUrl, 
 				"-l", login, 
-				"-p", password 
+				"-p", password, 
+				"-wd", workingDirectory
 				};
 
 		EditArticleCorpus.main(args);
@@ -105,7 +106,8 @@ public class _03_BuildTriageCorpusFromPdfDirTest {
 				"-owner", "Gully Burns",
 				"-db", dbUrl, 
 				"-l", login, 
-				"-p", password 
+				"-p", password, 
+				"-wd", workingDirectory 
 				};
 
 		EditArticleCorpus.main(args);
@@ -116,7 +118,8 @@ public class _03_BuildTriageCorpusFromPdfDirTest {
 				"-owner", "Gully Burns",
 				"-db", dbUrl, 
 				"-l", login, 
-				"-p", password 
+				"-p", password, 
+				"-wd", workingDirectory 
 				};
 
 		EditTriageCorpus.main(args);
@@ -138,7 +141,8 @@ public class _03_BuildTriageCorpusFromPdfDirTest {
 				"-triageCorpus", corpusName, 
 				"-db", dbUrl, 
 				"-l", login, 
-				"-p", password
+				"-p", password, 
+				"-wd", workingDirectory
 				};
 
 		BuildTriageCorpusFromPdfDir.main(args);
@@ -156,7 +160,8 @@ public class _03_BuildTriageCorpusFromPdfDirTest {
 				"-codeList", triageCodes.getPath(), 
 				"-db", dbUrl, 
 				"-l", login, 
-				"-p", password
+				"-p", password, 
+				"-wd", workingDirectory
 				};
 
 		BuildTriageCorpusFromPdfDir.main(args);
@@ -175,7 +180,8 @@ public class _03_BuildTriageCorpusFromPdfDirTest {
 				"-codeList", triageCodes.getPath(), 
 				"-db", dbUrl, 
 				"-l", login, 
-				"-p", password
+				"-p", password, 
+				"-wd", workingDirectory
 				};
 
 		BuildTriageCorpusFromPdfDir.main(args);
@@ -185,7 +191,8 @@ public class _03_BuildTriageCorpusFromPdfDirTest {
 				"-triageCorpus", corpusName, 
 				"-db", dbUrl, 
 				"-l", login, 
-				"-p", password
+				"-p", password, 
+				"-wd", workingDirectory
 				};
 
 		BuildTriageCorpusFromPdfDir.main(args);

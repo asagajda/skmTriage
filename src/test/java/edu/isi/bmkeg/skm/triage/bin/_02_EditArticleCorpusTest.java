@@ -23,7 +23,7 @@ public class _02_EditArticleCorpusTest {
 	
 	ApplicationContext ctx;
 	
-	String login, password, dbUrl;
+	String login, password, dbUrl, wd;
 	File archiveFile, pmidFile_allChecked, triageCodes, pdfDir;
 	VPDMfKnowledgeBaseBuilder builder;
 	
@@ -40,7 +40,7 @@ public class _02_EditArticleCorpusTest {
 		login = prop.getDbUser();
 		password = prop.getDbPassword();
 		dbUrl = prop.getDbUrl();
-		String wd = prop.getWorkingDirectory();
+		wd = prop.getWorkingDirectory();
 		
 		pdfDir = new File( wd + "/pdfs" );
 		
@@ -88,7 +88,8 @@ public class _02_EditArticleCorpusTest {
 				"-owner", "Gully Burns",
 				"-db", dbUrl, 
 				"-l", login, 
-				"-p", password
+				"-p", password,
+				"-wd", wd
 				};
 
 		EditArticleCorpus.main(args);
@@ -105,7 +106,8 @@ public class _02_EditArticleCorpusTest {
 				"-owner", "CHANGE THIS",
 				"-db", dbUrl, 
 				"-l", login, 
-				"-p", password 
+				"-p", password,
+				"-wd", wd 
 				};
 
 		EditArticleCorpus.main(args);
@@ -117,7 +119,8 @@ public class _02_EditArticleCorpusTest {
 				"-owner", "Gully Burns",
 				"-db", dbUrl, 
 				"-l", login, 
-				"-p", password
+				"-p", password,
+				"-wd", wd
 				};
 
 		EditArticleCorpus.main(args);

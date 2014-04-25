@@ -214,6 +214,11 @@
 			</exclusions>
 		</dependency>
 
+		<dependency>
+			<groupId>edu.isi.bmkeg</groupId>
+			<artifactId>digitalLibraryDao</artifactId>
+		</dependency>
+
 		<!-- Importing cleartk dependency management (Notice scope: import) 
 		<dependency>
 			<groupId>org.cleartk</groupId>
@@ -240,17 +245,52 @@
 			<artifactId>cleartk-ml-liblinear</artifactId>
 		</dependency>
 
+ 		<dependency>
+			<groupId>org.cleartk</groupId>
+			<artifactId>cleartk-ml-libsvm</artifactId>
+		</dependency>
+
+		<!-- <dependency>
+			<groupId>org.cleartk</groupId>
+			<artifactId>cleartk-ml-mallet</artifactId>
+		</dependency> -->
+
+		<dependency>
+			<groupId>org.cleartk</groupId>
+			<artifactId>cleartk-ml-svmlight</artifactId>
+		</dependency>
+
 		<dependency>
 			<groupId>org.cleartk</groupId>
 			<artifactId>cleartk-ml-tksvmlight</artifactId>
 		</dependency>
 
+		<dependency>
+			<groupId>org.cleartk</groupId>
+			<artifactId>cleartk-opennlp-tools</artifactId>
+		</dependency>
+
+ 		<dependency>
+			<groupId>org.cleartk</groupId>
+			<artifactId>cleartk-util</artifactId>
+		</dependency>
+
+ 		<dependency>
+			<groupId>org.cleartk</groupId>
+			<artifactId>cleartk-snowball</artifactId>
+		</dependency>
+
+   		<dependency>
+			<groupId>org.cleartk</groupId>
+			<artifactId>cleartk-token</artifactId>
+		</dependency> 
+	 					
 		<!--  <dependency>
 			<groupId>org.cleartk</groupId>
 			<artifactId>cleartk-ml-mallet</artifactId>
 		</dependency>-->
 
-		<dependency>
+		<!-- <dependency>
 			<groupId>edu.isi.bmkeg</groupId>
 			<artifactId>skmCore</artifactId>
 			<exclusions>
@@ -259,7 +299,7 @@
 					<groupId>org.cleartk</groupId>
 				</exclusion>
 			</exclusions>
-		</dependency>
+		</dependency> -->
 
 		<dependency>
 			<groupId>org.springframework</groupId>

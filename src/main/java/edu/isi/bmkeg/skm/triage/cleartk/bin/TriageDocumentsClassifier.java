@@ -79,9 +79,7 @@ public class TriageDocumentsClassifier {
 		TRAIN, CLASSIFY
 	}
 
-	public static String DATA_WRITER_NAME = LibSvmBooleanOutcomeDataWriter.class
-			.getName();
-
+	public static String DATA_WRITER_NAME =  "org.cleartk.classifier.libsvm.LibSvmBooleanOutcomeDataWriter";
 	public static String[] TRAINING_ARGS = new String[] { "-t", "0" };
 
 	public String triageCorpus;

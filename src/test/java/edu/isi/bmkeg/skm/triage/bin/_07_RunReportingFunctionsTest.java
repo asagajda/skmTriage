@@ -24,7 +24,7 @@ public class _07_RunReportingFunctionsTest {
 	
 	ApplicationContext ctx;
 	
-	String login, password, dbUrl, workingDirectory;
+	String login, password, dbUrl, wd;
 	String corpusName;
 	File archiveFile, pmidFile_allChecked, triageCodes, pdfDir, pdfDir2;
 	VPDMfKnowledgeBaseBuilder builder;
@@ -45,7 +45,7 @@ public class _07_RunReportingFunctionsTest {
 		login = prop.getDbUser();
 		password = prop.getDbPassword();
 		dbUrl = prop.getDbUrl();
-		workingDirectory = prop.getWorkingDirectory();
+		wd = prop.getWorkingDirectory();
 		
 		int l = dbUrl.lastIndexOf("/");
 		if (l != -1)
@@ -83,7 +83,7 @@ public class _07_RunReportingFunctionsTest {
 			builder.buildDatabaseFromArchive();
 	
 			te = new TriageEngine();
-			te.initializeVpdmfDao(login, password, dbUrl, workingDirectory);
+			te.initializeVpdmfDao(login, password, dbUrl, wd);
 			te.getDigLibDao().getCoreDao().connectToDb();
 			
 			corpusName = "TriageCorpus";
@@ -95,7 +95,8 @@ public class _07_RunReportingFunctionsTest {
 					"-owner", "Gully Burns",
 					"-db", dbUrl, 
 					"-l", login, 
-					"-p", password 
+					"-p", password, 
+					"-wd", wd 
 					};
 	
 			EditArticleCorpus.main(args);
@@ -107,7 +108,8 @@ public class _07_RunReportingFunctionsTest {
 					"-owner", "Gully Burns",
 					"-db", dbUrl, 
 					"-l", login, 
-					"-p", password 
+					"-p", password, 
+					"-wd", wd 
 					};
 	
 			EditArticleCorpus.main(args);
@@ -118,7 +120,8 @@ public class _07_RunReportingFunctionsTest {
 					"-owner", "Gully Burns",
 					"-db", dbUrl, 
 					"-l", login, 
-					"-p", password 
+					"-p", password, 
+					"-wd", wd 
 					};
 	
 			EditTriageCorpus.main(args);
@@ -128,7 +131,8 @@ public class _07_RunReportingFunctionsTest {
 					"-triageCorpus", corpusName, 
 					"-db", dbUrl, 
 					"-l", login, 
-					"-p", password
+					"-p", password, 
+					"-wd", wd
 					};
 	
 			BuildTriageCorpusFromPdfDir.main(args);
@@ -154,7 +158,8 @@ public class _07_RunReportingFunctionsTest {
 				"-targetCorpus", "GO", 
 				"-db", dbUrl, 
 				"-l", login, 
-				"-p", password
+				"-p", password, 
+				"-wd", wd
 				};
 		ReportTargetCorpusContents.main(args);
 
@@ -163,14 +168,16 @@ public class _07_RunReportingFunctionsTest {
 				"-triageCorpus", corpusName, 
 				"-db", dbUrl, 
 				"-l", login, 
-				"-p", password
+				"-p", password, 
+				"-wd", wd
 				};
 		ReportTriageCorpusContents.main(args);
 
 		args = new String[] { 
 				"-db", dbUrl, 
 				"-l", login, 
-				"-p", password
+				"-p", password, 
+				"-wd", wd
 				};
 		ReportCorpusCounts.main(args);
 		
