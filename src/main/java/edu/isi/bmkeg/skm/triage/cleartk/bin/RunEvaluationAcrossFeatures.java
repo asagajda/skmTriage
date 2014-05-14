@@ -17,8 +17,6 @@ import edu.isi.bmkeg.skm.triage.cleartk.utils.Options_ImplBase;
 
 public class RunEvaluationAcrossFeatures {
 
-	public static String USAGE = 
-			"-corpus <corpusName> -dir <dir> -prop <propHeldOut> -l <login> -p <password> -db <dbName>";
 	
 	public static class Options extends Options_ImplBase {
 		@Option(name = "-triageCorpus", usage = "The triage corpus to be evaluated")
@@ -33,7 +31,7 @@ public class RunEvaluationAcrossFeatures {
 		@Option(name = "-prop", usage = "Proportion of documents to be held out")
 		public float prop = 0.0f;
 
-		@Option(name = "-nRepeats", usage = "Proportion of documents to be held out")
+		@Option(name = "-nRepeats", usage = "Number of repeats")
 		public int nRep = 1;
 
 		@Option(name = "-nFolds", usage = "N folds for cross validation")
@@ -57,15 +55,6 @@ public class RunEvaluationAcrossFeatures {
 
 		Options options = new Options();
 		options.parseOptions(args);
-
-		if (options.targetCorpus.length() == 0 
-				|| options.triageCorpus.length() == 0 
-				|| options.login.length() == 0
-				|| options.password.length() == 0
-				|| options.dbName.length() == 0) {
-			System.err.print(USAGE);
-			System.exit(-1);
-		}
 
 		String dirPath = options.dir.getPath().replaceAll("\n", "");
 		File dir = new File(dirPath); 

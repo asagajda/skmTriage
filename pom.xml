@@ -218,6 +218,11 @@
 			<groupId>edu.isi.bmkeg</groupId>
 			<artifactId>digitalLibraryDao</artifactId>
 		</dependency>
+		
+		<dependency>
+			<groupId>commons-net</groupId>
+			<artifactId>commons-net</artifactId>
+		</dependency>
 
 		<!-- Importing cleartk dependency management (Notice scope: import) 
 		<dependency>

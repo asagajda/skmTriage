@@ -196,7 +196,7 @@ public class ImportMgiIdDump {
 		System.out.println("Number of MGI articles with open access PDFs:" + pdfCount);
 		
 		//
-		// UPLOAD DATA 
+		// UPLOAD LITERATURE CITATIONS 
 		//
 		DigitalLibraryEngine de = new DigitalLibraryEngine();
 		de.initializeVpdmfDao(options.login, options.password, options.dbName, options.workingDirectory);
@@ -221,9 +221,8 @@ public class ImportMgiIdDump {
 			}
 			antiPmids.add(antiPmid);
 		}
-		List<ArticleCitation> antiAcs = de.insertArticlesFromPmidList_inTrans(sortedPmids);	
-		
-		de.getDigLibDao().getCoreDao().commitTransaction();
+		List<ArticleCitation> antiAcs = de.insertArticlesFromPmidList(antiPmids, new HashMap<Integer,String>() );	
+		//de.getDigLibDao().getCoreDao().commitTransaction();
 		
 	}
 
