@@ -80,7 +80,7 @@ public class RunEvaluationAcrossModels {
 				options.prop + "", "-db", options.dbName, "-l",
 				options.login, "-p", options.password, 
 				"-wd", options.workingDirectory.getPath() };
-		PreprocessTriageScores.main(args2);
+		SetUpClassificationExperiment.main(args2);
 
 		String triageCorpusName = options.triageCorpus.replaceAll("\\s+",
 				"_");

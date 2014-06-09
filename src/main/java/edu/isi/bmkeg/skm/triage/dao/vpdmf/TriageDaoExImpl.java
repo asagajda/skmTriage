@@ -103,7 +103,43 @@ public class TriageDaoExImpl implements TriageDaoEx {
 	// ~~~~~~~~~~~~~~~~~~~
 	// Delete Functions
 	// ~~~~~~~~~~~~~~~~~~~
+	@Override
+	public void deleteExistingTriageScores(String triageCorpus, 
+			String targetCorpus) throws Exception {
 
+		
+		//
+		// REMOVE EXISTING DATA FROM THE TRIAGE SCORE
+		// (AND TRIAGEFEATURE) TABLE.
+		// NEED TO UPDATE THE DELETION FUNCTIONS WITHIN VPDMf
+		//
+		String sql1 = "DELETE tf.* " + "FROM TriageScore AS ts, "
+				+ " TriageFeature AS tf, " + " Corpus AS targetc, "
+				+ " Corpus AS triagec "
+				+ "WHERE ts.targetCorpus_id = targetc.vpdmfId "
+				+ "  AND targetc.name = '" + targetCorpus + "'"
+				+ "  AND ts.triageCorpus_id = triagec.vpdmfId "
+				+ "  AND triagec.name = '" + triageCorpus + "';";
+
+		int nRowsChanged = this.getCoreDao().getCe()
+				.executeRawUpdateQuery(sql1);
+		this.coreDao.getCe().prettyPrintSQL(sql1);
+		logger.debug(nRowsChanged + " rows altered.");
+
+		String sql2 = "DELETE ts.*, vt.* " + "FROM TriageScore AS ts, "
+				+ " ViewTable AS vt, " + " Corpus AS targetc, "
+				+ " Corpus AS triagec " + "WHERE vt.vpdmfId = ts.vpdmfId "
+				+ "  AND ts.targetCorpus_id = targetc.vpdmfId "
+				+ "  AND targetc.name = '" + targetCorpus + "'"
+				+ "  AND ts.triageCorpus_id = triagec.vpdmfId "
+				+ "  AND triagec.name = '" + triageCorpus + "';";
+
+		nRowsChanged = this.getCoreDao().getCe().executeRawUpdateQuery(sql2);
+		this.coreDao.getCe().prettyPrintSQL(sql2);
+		logger.debug(nRowsChanged + " rows altered.");
+			
+	}
+	
 	// ~~~~~~~~~~~~~~~~~~~~
 	// Find by id Functions
 	// ~~~~~~~~~~~~~~~~~~~~
@@ -135,6 +171,8 @@ public class TriageDaoExImpl implements TriageDaoEx {
 	// ~~~~~~~~~~~~~~~~~~~~
 	// Add x to y functions
 	// ~~~~~~~~~~~~~~~~~~~~
+	
+	// TODO: CONVERT THIS TO A SIMPLER, QUICKER BATCH UPLOAD FUNCTION.
 	@Override
 	public void addTriageDocumentsToCorpus(String triageCorpus, 
 			String targetCorpus,
@@ -190,52 +228,6 @@ public class TriageDaoExImpl implements TriageDaoEx {
 					"]LiteratureCitation|ViewTable.vpdmfId", 0);
 			ai.writeValueString(lvi.getVpdmfId() + "");
 			
-			// May may need to delete the existing data in the database.
-			List<LightViewInstance> lviList = getCe().executeListQuery(vi);
-			if( lviList.size() > 0 ) {
-				
-				//
-				// REMOVE EXISTING DATA FROM THE TRIAGE SCORE 
-				// (AND TRIAGEFEATURE) TABLE.
-				// NEED TO UPDATE THE DELETION FUNCTIONS WITHIN VPDMf
-				//
-				String sql1 = "DELETE tf.* " +
-							 "FROM TriageScore AS ts, " +  
-							 " TriageFeature AS tf, " + 
-							 " LiteratureCitation AS litcit, " +
-							 " Corpus AS targetc, " +
-							 " Corpus AS triagec " +
-							 "WHERE ts.citation_id = litcit.vpdmfId " +		
-							 "  AND litcit.vpdmfId = " + lvi.getVpdmfId() +		
-							 "  AND ts.targetCorpus_id = targetc.vpdmfId " +		
-							 "  AND targetc.name = '" + targetCorpus + "'" +
-							 "  AND ts.triageCorpus_id = triagec.vpdmfId " +
-							 "  AND triagec.name = '" + triageCorpus + "';";
-								
-				int nRowsChanged = this.getCoreDao().getCe().executeRawUpdateQuery(sql1);				
-				this.coreDao.getCe().prettyPrintSQL(sql1);
-				logger.debug(nRowsChanged + " rows altered.");
-	
-				String sql2 = "DELETE ts.*, vt.* " +
-						 "FROM TriageScore AS ts, " + 
-						 " ViewTable AS vt, " +
-						 " LiteratureCitation AS litcit, " +
-						 " Corpus AS targetc, " +
-						 " Corpus AS triagec " +
-						 "WHERE vt.vpdmfId = ts.vpdmfId " +
-						 "  AND ts.citation_id = litcit.vpdmfId " +		
-						 "  AND litcit.vpdmfId = " + lvi.getVpdmfId() +		
-						 "  AND ts.targetCorpus_id = targetc.vpdmfId " +		
-						 "  AND targetc.name = '" + targetCorpus + "'" +
-						 "  AND ts.triageCorpus_id = triagec.vpdmfId " +
-						 "  AND triagec.name = '" + triageCorpus + "';";
-				
-				nRowsChanged = this.getCoreDao().getCe().executeRawUpdateQuery(sql2);				
-				this.coreDao.getCe().prettyPrintSQL(sql2);
-				logger.debug(nRowsChanged + " rows altered.");
-				
-			}
-
 			count++;
 
 			if( (count % 50 == 0) )

@@ -14,37 +14,27 @@ import org.uimafit.factory.TypeSystemDescriptionFactory;
 import org.uimafit.pipeline.SimplePipeline;
 
 import edu.isi.bmkeg.skm.triage.cleartk.annotators.EvaluationPreparer;
-import edu.isi.bmkeg.skm.triage.cleartk.cr.TriageScoreCollectionReader;
+import edu.isi.bmkeg.skm.triage.cleartk.cr.filteredLineReader.UnfilteredLineReader;
 import edu.isi.bmkeg.skm.triage.cleartk.utils.Options_ImplBase;
 
-public class PreprocessTriageScores {
+public class SetUpClassificationExperiment {
 
-	public static String USAGE = "-corpus <corpusName> -dir <dir> -prop <propHeldOut> -l <login> -p <password> -db <dbName>";
-	
 	public static class Options extends Options_ImplBase {
+		
 		@Option(name = "-triageCorpus", usage = "The triage corpus to be evaluated")
 		public String triageCorpus = "";
 
 		@Option(name = "-targetCorpus", usage = "The target corpus to be evaluated")
 		public String targetCorpus = "";
 
-		@Option(name = "-dir", usage = "Target directory")
+		@Option(name = "-dir", usage = "Data Directory for Experiment")
 		public File dir;
 		
 		@Option(name = "-prop", usage = "Proportion of documents to be held out")
 		public float prop = 0.0f;
-		
-		@Option(name = "-l", usage = "Database login")
-		public String login = "";
 
-		@Option(name = "-p", usage = "Database password")
-		public String password = "";
-
-		@Option(name = "-db", usage = "Database name")
-		public String dbName = "";
-		
-		@Option(name = "-wd", usage = "Working Directory")
-		public File workingDirectory;
+		@Option(name = "-baseData", usage = "Base Data Directory")
+		public File baseData;
 
 	}
 
@@ -53,33 +43,20 @@ public class PreprocessTriageScores {
 		Options options = new Options();
 		options.parseOptions(args);
 
-		if (options.targetCorpus.length() == 0 
-				|| options.triageCorpus.length() == 0 
-				|| !options.dir.exists() 
-				|| options.login.length() == 0
-				|| options.password.length() == 0
-				|| options.dbName.length() == 0) {
-			System.err.print(USAGE);
-			System.exit(-1);
-		}
-
 		long startTime = System.currentTimeMillis();
 
 		TypeSystemDescription typeSystem = TypeSystemDescriptionFactory
 				.createTypeSystemDescription("uimaTypes.vpdmf-triage",
 						"edu.isi.bmkeg.skm.cleartk.TypeSystem");
 		
-		CollectionReader cr = CollectionReaderFactory.createCollectionReader(
-				TriageScoreCollectionReader.class, typeSystem, 
-				TriageScoreCollectionReader.TRIAGE_CORPUS_NAME, options.triageCorpus,
-				TriageScoreCollectionReader.TARGET_CORPUS_NAME, options.targetCorpus,
-				TriageScoreCollectionReader.LOGIN, options.login, 
-				TriageScoreCollectionReader.PASSWORD, options.password, 
-				TriageScoreCollectionReader.DB_URL, options.dbName,
-				TriageScoreCollectionReader.WORKING_DIRECTORY, options.workingDirectory,
-				TriageScoreCollectionReader.SKIP_UNKNOWNS, true);
+		Integer[] filterIds = new Integer[]{};
 		
-
+		CollectionReader cr = CollectionReaderFactory
+				.createCollectionReader( UnfilteredLineReader.class, typeSystem, 
+						UnfilteredLineReader.PARAM_FILE_OR_DIRECTORY_NAME, options.baseData.getPath(),
+						UnfilteredLineReader.PARAM_SUFFIXES, new String[]{".txt"},
+						UnfilteredLineReader.PARAM_DELIMITER, "\t");
+		
 	    AggregateBuilder builder = new AggregateBuilder();
 
 	    builder.add(SentenceAnnotator.getDescription()); // Sentence segmentation
@@ -102,7 +79,11 @@ public class PreprocessTriageScores {
 	    // ///////////////////////////////////////////
 	    // Run pipeline to create training data file
 	    // ///////////////////////////////////////////
-	    SimplePipeline.runPipeline(cr, builder.createAggregateDescription());
+	    try {
+		    SimplePipeline.runPipeline(cr, builder.createAggregateDescription());	    	
+	    } catch (Exception e) {
+	    	e.printStackTrace();
+	    }
 
 	}
 

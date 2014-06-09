@@ -150,7 +150,7 @@ public class RunFeatureSelection extends CrossValidationEvaluation {
 				.createPrimitiveDescription(GoldDocumentCategoryAnnotator.class));
 		
 		// TF-IDF annotator, need to use InstandDataWriter to save the raw 
-		// scores for subsequent inclusion intot 
+		// scores for subsequent inclusion into 
 		builder.add(AnalysisEngineFactory.createPrimitiveDescription(
 				MutualInformation_Annotator.class,
 				CleartkAnnotator.PARAM_IS_TRAINING, true,

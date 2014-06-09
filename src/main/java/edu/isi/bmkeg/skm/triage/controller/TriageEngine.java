@@ -172,44 +172,52 @@ public class TriageEngine extends DigitalLibraryEngine
 			if (c.getRegex() == null)
 				continue;
 
-			// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-			// Are there any codes assigned? If so, we assume that
-			// ALL PAPERS IN THE COLLECTION ARE 'IN' OR 'OUT'
-			// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-			boolean allInOut = false;
-			for (String s : codeList.values()) {
-				if (s.length() > 0) {
-					allInOut = true;
-					break;
-				}
-			}
-
-			if (allInOut) {
-				logger.info("ASSUMING THAT ALL DOCUMENTS ARE CLASSIFED");
-			} else {
-				logger.info("ASSUMING THAT ALL DOCUMENTS ARE UNCLASSIFED");
-			}
-
-			Map<Integer, String> pmidCodes = new HashMap<Integer, String>();
-			for (Integer pmid : codeList.keySet()) {
-				String code = codeList.get(pmid);
-				if (!allInOut) {
-					pmidCodes.put(pmid, TriageCode.UNCLASSIFIED);
-				} else {
-					if (code.contains(c.getRegex())) {
-						pmidCodes.put(pmid, TriageCode.IN);
-					} else {
-						pmidCodes.put(pmid, TriageCode.OUT);
-					}
-				}
-			}
-
-			this.exTriageDao.addTriageDocumentsToCorpus(tc.getName(),
-					c.getName(), pmidCodes);
-
+			this.addCodeListToCorpus(tc, c, codeList);
+			
 		}
 	}
 
+	public void addCodeListToCorpus(TriageCorpus tc, 
+			Corpus c, Map<Integer, String> codeList) throws Exception {
+
+		// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+		// Are there any codes assigned? If so, we assume that
+		// ALL PAPERS IN THE COLLECTION ARE 'IN' OR 'OUT'
+		// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+		boolean allInOut = false;
+		for (String s : codeList.values()) {
+			if (s.length() > 0) {
+				allInOut = true;
+				break;
+			}
+		}
+
+		if (allInOut) {
+			logger.info("ASSUMING THAT ALL DOCUMENTS ARE CLASSIFED");
+		} else {
+			logger.info("ASSUMING THAT ALL DOCUMENTS ARE UNCLASSIFED");
+		}
+
+		Map<Integer, String> pmidCodes = new HashMap<Integer, String>();
+		for (Integer pmid : codeList.keySet()) {
+			String code = codeList.get(pmid);
+			if (!allInOut) {
+				pmidCodes.put(pmid, TriageCode.UNCLASSIFIED);
+			} else {
+				if (code.contains(c.getRegex())) {
+					pmidCodes.put(pmid, TriageCode.IN);
+				} else {
+					pmidCodes.put(pmid, TriageCode.OUT);
+				}
+			}
+		}
+
+		this.exTriageDao.addTriageDocumentsToCorpus(tc.getName(),
+				c.getName(), pmidCodes);
+
+	}
+	
+	
 	public Map<Integer, String> compileCodeList(File inputFile)
 			throws Exception {
 		Map<Integer, String> codeMap = new HashMap<Integer, String>();

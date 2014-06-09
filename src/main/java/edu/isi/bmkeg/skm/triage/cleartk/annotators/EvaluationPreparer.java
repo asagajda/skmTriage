@@ -5,6 +5,7 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.net.URI;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
@@ -16,11 +17,13 @@ import org.apache.uima.jcas.JCas;
 import org.apache.uima.resource.ResourceInitializationException;
 import org.cleartk.token.type.Sentence;
 import org.cleartk.token.type.Token;
+import org.cleartk.util.ViewUriUtil;
 import org.uimafit.component.JCasAnnotator_ImplBase;
 import org.uimafit.descriptor.ConfigurationParameter;
 import org.uimafit.factory.ConfigurationParameterFactory;
 import org.uimafit.util.JCasUtil;
 
+import edu.isi.bmkeg.skm.cleartk.type.CatorgorizedFtdText;
 import edu.isi.bmkeg.skm.triage.model.TriageCode;
 import edu.isi.bmkeg.triage.uimaTypes.TriageScore;
 import edu.isi.bmkeg.utils.Converters;
@@ -63,7 +66,10 @@ public class EvaluationPreparer extends JCasAnnotator_ImplBase {
 		this.pHoldout = (Float) context.getConfigParameterValue(PARAM_P_HOLDOUT);
 		
 		triageCorpusName = triageCorpusName.replaceAll("\\s+", "_");
+		triageCorpusName = triageCorpusName.replaceAll("\\/", "_");
+		
 		targetCorpusName = targetCorpusName.replaceAll("\\s+", "_");
+		targetCorpusName = targetCorpusName.replaceAll("\\/", "_");
 		
 		// set up the file system.
 		//
@@ -109,12 +115,7 @@ public class EvaluationPreparer extends JCasAnnotator_ImplBase {
 
 	public void process(JCas jCas) throws AnalysisEngineProcessException {
 		
-		TriageScore doc = JCasUtil.selectSingle(jCas, TriageScore.class);
-		String code = doc.getInOutCode();
-		
-//		If code is not "in" or "out" then return
-		if( ! TriageCode.IN.equals(code) && ! TriageCode.OUT.equals(code) ) 
-			return; 
+		URI uri = ViewUriUtil.getURI(jCas);
 		
 		double p = Math.random();
 		boolean holdOut = false;
@@ -122,26 +123,17 @@ public class EvaluationPreparer extends JCasAnnotator_ImplBase {
 			holdOut = true;
 		}
 		
-		File outFile = (holdOut) ? new File(test.getPath() + "/" + code + ".txt" ) 
-				: new File(train.getPath() + "/" + code + ".txt" ); 
+		File f = new File(uri.getPath());
+		String id = uri.getFragment();
+		File outFile = (holdOut) ? new File(test.getPath() + "/" + f.getName() ) 
+				: new File(train.getPath() + "/" + f.getName() ); 
 		
 		try {
 			
 			PrintWriter out = new PrintWriter(new BufferedWriter(new FileWriter(outFile, true)));
 
-			out.print(doc.getVpdmfId() + "	");
-
-			for (Sentence sentence : JCasUtil.select(jCas, Sentence.class)) {
-				List<Token> tokens = JCasUtil.selectCovered(jCas, Token.class, sentence);	
-				if (tokens.size() <= 0) { continue; }
-				
-				List<String> tokenStrings = JCasUtil.toText(tokens);						
-				for (int i = 0; i < tokens.size(); i++) {
-					out.print(tokenStrings.get(i) + " ");
-				}
-
-			}
-
+			out.print(id + "	");
+			out.print( jCas.getSofaDataString() );
 			out.print("\n");
 			out.close();
 		

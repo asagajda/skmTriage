@@ -7,6 +7,10 @@ import java.io.IOException;
 import java.io.StringWriter;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import javax.xml.transform.Transformer;
 import javax.xml.transform.TransformerException;
@@ -22,8 +26,12 @@ import org.apache.uima.resource.ResourceInitializationException;
 import org.apache.uima.util.Progress;
 import org.apache.uima.util.ProgressImpl;
 import org.jsoup.Jsoup;
-import org.jsoup.examples.HtmlToPlainText;
+import org.jsoup.nodes.Attribute;
+import org.jsoup.nodes.Comment;
 import org.jsoup.nodes.Document;
+import org.jsoup.nodes.Element;
+import org.jsoup.nodes.Node;
+import org.jsoup.select.Elements;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
 import org.uimafit.component.JCasCollectionReader_ImplBase;
@@ -131,6 +139,8 @@ public class TriageScoreCollectionReader extends JCasCollectionReader_ImplBase {
 	private TriageEngine triageEngine;
 
 	private int triageCorpusCount;
+	
+	private Pattern wsDetector = Pattern.compile("\\S+");
 
 	@Override
 	public void initialize(UimaContext context) throws ResourceInitializationException {
@@ -228,7 +238,9 @@ public class TriageScoreCollectionReader extends JCasCollectionReader_ImplBase {
 		    moveNext();
 		    
 		    pos++;
-		    //System.out.println("Processing " + pos + "th document.");
+		    if( (pos % 1000) == 0) {
+		    	System.out.println("Processing " + pos + "th document.");
+		    }
 		    
 		} catch (Exception e) {
 
@@ -304,7 +316,7 @@ public class TriageScoreCollectionReader extends JCasCollectionReader_ImplBase {
 		if( pmcXmlPath == null || pmcXmlPath.equals("null") )
 			throw new FileNotFoundException("Can't find " + pmcXmlPath );
 		
-		File pmcXmlFile = new File( this.workingDirectory + "/pdfs/" + pmcXmlPath);
+		File pmcXmlFile = new File( this.workingDirectory + "/" + pmcXmlPath);
 		
 		if( !pmcXmlFile.exists() )
 			throw new FileNotFoundException("Can't find " + pmcXmlFile.getPath() + ". Please check underlying database.");
@@ -313,8 +325,10 @@ public class TriageScoreCollectionReader extends JCasCollectionReader_ImplBase {
 		StringWriter outputWriter = new StringWriter();
 		
 		TransformerFactory tf = TransformerFactory.newInstance();
+		
+		// stylesheet
 		Resource xslResource = new ClassPathResource(
-				"jatsPreviewStyleSheets/xslt/main/jats-html.xsl"
+				"jatsPreviewStyleSheets/xslt/main/jats-html-textOnly.xsl"
 				);
 		StreamSource xslt = new StreamSource(xslResource.getInputStream());
 		Transformer transformer = tf.newTransformer(xslt);
@@ -325,11 +339,32 @@ public class TriageScoreCollectionReader extends JCasCollectionReader_ImplBase {
 		String html = outputWriter.toString();  
 				
 		Document doc = Jsoup.parse(html);
-		HtmlToPlainText formatter = new HtmlToPlainText();
-
-		String plainText = title + "\n\n"  
-				+ abst + "\n\n"
-        		+ formatter.getPlainText(doc);
+		
+		Elements bodyEls = doc.select("body");
+		for( Element bodyEl : bodyEls ) {
+			for( Element el : bodyEl.getAllElements() ) {
+				List<Node> links = new ArrayList<Node>();
+				for(Node n: el.select("a")) {
+					this.addFormattingSuffixes((Element) n, "___A");
+				}
+				for(Node n: el.select("i")) {
+					this.addFormattingSuffixes((Element) n, "___I");
+				}
+				for(Node n: el.select("b")) {
+					this.addFormattingSuffixes((Element) n, "___B");
+				}
+				for(Node n: el.select("sup")) {
+					this.addFormattingSuffixes((Element) n, "___SUP");
+				}
+				for(Node n: el.select("sub")) {
+					this.addFormattingSuffixes((Element) n, "___SUB");
+				}
+			}
+		}		
+		
+		String plainText =  title + "\n"  
+				+ abst + "\n"
+        		+ bodyEls.text();
 		
 		AggregatedScore as = new AggregatedScore(
 				vpdmfId, citation_id, inOutCode, plainText
@@ -350,6 +385,18 @@ public class TriageScoreCollectionReader extends JCasCollectionReader_ImplBase {
 		}
 		
 		return as;
+	}
+	
+	private Element addFormattingSuffixes(Element el, String suffix) {
+		String t = el.text();
+		String tt = "";
+		for( String w : t.split("\\+") ) {
+			if( w.length() > 0 )
+				tt += w + suffix;
+		}
+		el.text(tt);
+
+		return el;
 	}
 		
 	protected void error(String message) {

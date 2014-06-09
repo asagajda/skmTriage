@@ -84,6 +84,7 @@ import edu.isi.bmkeg.skm.triage.cleartk.annotators.TfIdf_Annotator;
  * 
  * 
  * @author Lee Becker
+ * @
  */
 public class CrossValEval_Multiway extends
 		CrossValidationEvaluation {
@@ -133,7 +134,7 @@ public class CrossValEval_Multiway extends
 		if( !annotatorClassName.equals("BigramCountAnnotator") && 
 				!annotatorClassName.equals("TfIdf_Annotator") &&  
 				!annotatorClassName.equals("UnigramCountAnnotator") && 
-				!annotatorClassName.equals("Unigram_and_BigramCountAnnotator") ) {
+				!annotatorClassName.equals("Uni_and_BigramCountAnnotator") ) {
 			
 			throw new Exception("annotationClassName must be 'BigramCountAnnotator' or "
 					+ "'TfIdf_Annotator' or "
@@ -192,17 +193,16 @@ public class CrossValEval_Multiway extends
 		}
 			
 		// run the pipeline
-		SimplePipeline.runPipeline(collectionReader,
-				builder.createAggregateDescription());
+		SimplePipeline.runPipeline(collectionReader, builder.createAggregateDescription());
 
 		// If this is running based on an annotator that does not 
 		// require aggregated data, train the model and return.
 		if( this.annotatorClass != TfIdf_Annotator.class ) {
 			logger.info("2. Train model and write model.jar file.\n");
 			String[] tArgs = this.trainingArguments.toArray(new String[this.trainingArguments.size()]);
-			HideOutput hider = new HideOutput();
+			//HideOutput hider = new HideOutput();
 			JarClassifierBuilder.trainAndPackage(outputDirectory, tArgs);
-			hider.restoreOutput();
+			//hider.restoreOutput();
 			return;
 		}
 		
@@ -301,6 +301,7 @@ public class CrossValEval_Multiway extends
 		Function<CatorgorizedFtdText, String> getCategory = AnnotationStatistics.annotationToFeatureValue("category");
 
 		for (JCas jCas : new JCasIterable(collectionReader, engine)) {
+			
 			JCas goldView = jCas.getView(GOLD_VIEW_NAME);
 			JCas systemView = jCas.getView(SYSTEM_VIEW_NAME);
 

@@ -3,13 +3,17 @@ package edu.isi.bmkeg.skm.triage.bin.mgiTools;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.FileWriter;
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.URL;
 import java.net.URLConnection;
 import java.sql.ResultSet;
+import java.text.Format;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -24,7 +28,6 @@ import org.kohsuke.args4j.CmdLineParser;
 import org.kohsuke.args4j.Option;
 
 import edu.isi.bmkeg.digitalLibrary.model.citations.ArticleCitation;
-import edu.isi.bmkeg.digitalLibrary.model.qo.citations.ArticleCitation_qo;
 import edu.isi.bmkeg.ftd.model.FTD;
 import edu.isi.bmkeg.ftd.model.qo.FTD_qo;
 import edu.isi.bmkeg.lapdf.model.LapdfDocument;
@@ -38,6 +41,9 @@ public class ImportPmcIdsFromPmids {
 
 	public static class Options {
 
+		@Option(name = "-triage", usage = "Triage Corpus", required = false, metaVar = "TRIAGE")
+		public String triageCorpus = "";
+		
 		@Option(name = "-l", usage = "Database login", required = true, metaVar = "LOGIN")
 		public String login = "";
 
@@ -88,16 +94,37 @@ public class ImportPmcIdsFromPmids {
 
 			String countSql = "SELECT COUNT(*) ";
 			
-			String fromWhereSql = "FROM LiteratureCitation AS l, " +
+			String fromWhereSql = "FROM LiteratureCitation AS l LEFT JOIN (FTD as f) ON (l.fullText_id = f.vpdmfId), " +
 					" ArticleCitation AS a, " +
 					" Journal AS j, " +
 					" URL AS u " + 
 					"WHERE " + 
 					" l.vpdmfId=a.vpdmfId AND " +
 					" j.vpdmfId=a.journal_id AND " +
-					" l.vpdmfId=u.resource_id";
+					" l.vpdmfId=u.resource_id AND "+ 
+					" f.vpdmfId IS NULL; ";
 
 			fromWhereSql += " ORDER BY l.vpdmfId";
+			
+			if( options.triageCorpus != null && options.triageCorpus.length() > 0 ){
+				
+				fromWhereSql = "FROM LiteratureCitation AS l LEFT JOIN (FTD as f) ON (l.fullText_id = f.vpdmfId), "
+						+ "ArticleCitation AS a, "
+						+ "Journal AS j, "
+						+ "URL AS u,   "
+						+ "TriageScore AS ts, "
+						+ "TriageCorpus AS tc, "
+						+ "Corpus AS c   "
+						+ "WHERE l.vpdmfId=a.vpdmfId AND  "
+						+ "j.vpdmfId=a.journal_id AND  "
+						+ "l.vpdmfId=u.resource_id AND "
+						+ "ts.citation_id=l.vpdmfId AND "
+						+ "ts.triageCorpus_id=tc.vpdmfId AND "
+						+ "tc.vpdmfId=c.vpdmfId AND "
+						+ "c.name = '"+ options.triageCorpus+ "' AND "
+						+ "f.vpdmfId IS NULL; ";
+				
+			}
 
 			triageEngine.getDigLibDao().getCoreDao().getCe().connectToDB();
 			
@@ -194,7 +221,25 @@ public class ImportPmcIdsFromPmids {
 				
 				if( !pmcXml.exists() ) {
 					url = new URL(eFetchUrl);
-					URLConnection urlc = url.openConnection();
+					URLConnection urlc = null;
+					while( urlc == null ) {	
+						
+						try {
+							
+							urlc = url.openConnection();							
+						
+						} catch( IOException e ) {
+							e.printStackTrace();
+							Date d = new Date();
+							Format formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+							String s = formatter.format(d);
+							System.err.println(s);
+							
+							// Here, we wait 1 hour before trying again.
+							Thread.sleep(3600000);
+							
+						}
+					}
 					InputStream inputStream = urlc.getInputStream();				
 					OutputStream outputStream = new FileOutputStream(pmcXml);
 
@@ -222,11 +267,9 @@ public class ImportPmcIdsFromPmids {
 				
 				} catch(Exception e) {
 
-					
 					e.printStackTrace();
 					nLapdfErrors++;
 					System.out.println("lapdf errors = " + nLapdfErrors + " / " + total);
-					continue;
 				
 				}
 
@@ -239,7 +282,6 @@ public class ImportPmcIdsFromPmids {
 					e.printStackTrace();
 					nSwfErrors++;
 					System.out.println("swf errors = " + nSwfErrors + " / " + total);
-					continue;
 					
 				}
 				
@@ -249,10 +291,21 @@ public class ImportPmcIdsFromPmids {
 				ftd.setChecksum(checksum);
 				ftd.setName(stem + pmid + ".pdf");
 				
-				LapdftextXMLDocument xml = doc.convertToLapdftextXmlFormat();
 				File xmlFile = new File( options.workingDirectory + stem + pmid + "_lapdf.xml" );
-				FileWriter writer = new FileWriter(xmlFile);
-				XmlBindingTools.generateXML(xml, writer);
+				
+				try {
+				
+					LapdftextXMLDocument xml = doc.convertToLapdftextXmlFormat();
+					FileWriter writer = new FileWriter(xmlFile);
+					XmlBindingTools.generateXML(xml, writer);
+
+				} catch (Exception e) {
+					
+					e.printStackTrace();
+					System.out.println("lapdf xml rendering error");
+					
+				}
+				
 				ftd.setXmlFile( stem + pmid + "_lapdf.xml");				
 				ftd.setXmlLoaded(xmlFile.exists());
 				
@@ -281,7 +334,6 @@ public class ImportPmcIdsFromPmids {
 				}
 				
 			}
-			
 
 		} catch (CmdLineException e) {
 

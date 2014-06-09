@@ -64,48 +64,48 @@ import org.uimafit.factory.initializable.InitializableFactory;
  * 
  */
 @SofaCapability(outputSofas = ViewUriUtil.URI)
-public class FilteredLineReader extends JCasCollectionReader_ImplBase {
+public class UnfilteredLineReader extends JCasCollectionReader_ImplBase {
 
 	public static final String PARAM_FILE_OR_DIRECTORY_NAME = ConfigurationParameterFactory
-			.createConfigurationParameterName(FilteredLineReader.class,
+			.createConfigurationParameterName(UnfilteredLineReader.class,
 					"fileOrDirectoryName");
 
 	@ConfigurationParameter(mandatory = true, description = "Takes either the name of a single file or the root directory containing all the files to be processed.")
 	private String fileOrDirectoryName;
 
 	public static final String PARAM_VIEW_NAME = ConfigurationParameterFactory
-			.createConfigurationParameterName(FilteredLineReader.class, "viewName");
+			.createConfigurationParameterName(UnfilteredLineReader.class, "viewName");
 
 	@ConfigurationParameter(description = "takes the the name that should be given to the JCas view associated with the document texts.", defaultValue = CAS.NAME_DEFAULT_SOFA)
 	private String viewName;
 
 	public static final String PARAM_LANGUAGE = ConfigurationParameterFactory
-			.createConfigurationParameterName(FilteredLineReader.class, "language");
+			.createConfigurationParameterName(UnfilteredLineReader.class, "language");
 
 	@ConfigurationParameter(description = "takes the language code corresponding to the language of the documents being examined. The value of this parameter is simply passed on to JCas.setDocumentLanguage(String)")
 	private String language;
 
 	public static final String PARAM_ENCODING = ConfigurationParameterFactory
-			.createConfigurationParameterName(FilteredLineReader.class, "encoding");
+			.createConfigurationParameterName(UnfilteredLineReader.class, "encoding");
 
 	@ConfigurationParameter(description = "takes the encoding of the text files (e.g. 'UTF-8').  See apidocs for java.nio.charset.Charset for a list of encoding names.")
 	private String encoding;
 
 	public static final String PARAM_SUFFIXES = ConfigurationParameterFactory
-			.createConfigurationParameterName(FilteredLineReader.class, "suffixes");
+			.createConfigurationParameterName(UnfilteredLineReader.class, "suffixes");
 
 	@ConfigurationParameter(description = "Takes suffixes (e.g. .txt) of the files that should be read in.")
 	private String[] suffixes;
 
 	public static final String PARAM_COMMENT_SPECIFIERS = ConfigurationParameterFactory
-			.createConfigurationParameterName(FilteredLineReader.class,
+			.createConfigurationParameterName(UnfilteredLineReader.class,
 					"commentSpecifiers");
 
 	@ConfigurationParameter(description = "Specifies lines that should be considered 'comments' - i.e. lines that should be skipped. Commented lines are those the start with one of the values of this parameter.")
 	private String[] commentSpecifiers;
 
 	public static final String PARAM_SKIP_BLANK_LINES = ConfigurationParameterFactory
-			.createConfigurationParameterName(FilteredLineReader.class,
+			.createConfigurationParameterName(UnfilteredLineReader.class,
 					"skipBlankLines");
 
 	@ConfigurationParameter(description = "Specifies whether blank lines should be skipped or not. The default value is true if no value is given. If this parameter is set to false, then blank lines that appear in the text files will be read in and given their own JCas.  Blank lines are those that consist of only whitespace.", defaultValue = "true")
@@ -114,15 +114,9 @@ public class FilteredLineReader extends JCasCollectionReader_ImplBase {
 	//~ Additions to the base core of LineReader here ~~~~~~~~~~~~~~~~~~~~~~~~~~
 	// Note we remove the line handler functionality, 
 	// since we provide that directly
-	
-	public static final String PARAM_FILTER_IDS = ConfigurationParameterFactory
-			.createConfigurationParameterName(FilteredLineReader.class, "filterIds");
-
-	@ConfigurationParameter(mandatory = true, description = "List of numeric id values that the reader filters against")
-	private Integer[] filterIds;
-	
+		
 	public static final String PARAM_DELIMITER = ConfigurationParameterFactory
-			.createConfigurationParameterName(FilteredLineReader.class,
+			.createConfigurationParameterName(UnfilteredLineReader.class,
 					"delimiter");
 
 	@ConfigurationParameter(mandatory = true, defaultValue = "\t", description = "specifies a string that delimits the id from the text. ")
@@ -140,8 +134,6 @@ public class FilteredLineReader extends JCasCollectionReader_ImplBase {
 
 	FilteredLineHandler lineHandler;
 	
-	Set<Integer> idLookup;
-
 	@Override
 	public void initialize(UimaContext context)
 			throws ResourceInitializationException {
@@ -154,17 +146,6 @@ public class FilteredLineReader extends JCasCollectionReader_ImplBase {
 				String message = String.format(format, fileOrDirectoryName);
 				throw new ResourceInitializationException(new IOException(
 						message));
-			}
-
-			if( filterIds == null || filterIds.length == 0 ) {
-				throw new ResourceInitializationException(
-						new Exception("id list cannot be null")
-						);
-			}
-			
-			idLookup = new HashSet<Integer>();
-			for(int i=0; i<filterIds.length; i++) {
-				idLookup.add(filterIds[i]);
 			}
 			
 			if (rootFile.isDirectory()) {
@@ -266,17 +247,7 @@ public class FilteredLineReader extends JCasCollectionReader_ImplBase {
 				
 				}
 				
-				Integer id = new Integer(line.substring(0, line.indexOf(delimiter)));
-				if (!this.idLookup.contains(id)){
-				
-					line = input.readLine();
-					continue;
-				
-				} else {
-
-					break;		
-				
-				}
+				break;		
 			
 			}
 			

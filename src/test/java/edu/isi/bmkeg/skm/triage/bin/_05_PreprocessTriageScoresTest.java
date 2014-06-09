@@ -13,7 +13,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 import edu.isi.bmkeg.digitalLibrary.bin.EditArticleCorpus;
 import edu.isi.bmkeg.digitalLibrary.dao.ExtendedDigitalLibraryDao;
-import edu.isi.bmkeg.skm.triage.cleartk.bin.PreprocessTriageScores;
+import edu.isi.bmkeg.skm.triage.cleartk.bin.SetUpClassificationExperiment;
 import edu.isi.bmkeg.utils.springContext.AppContext;
 import edu.isi.bmkeg.utils.springContext.BmkegProperties;
 import edu.isi.bmkeg.vpdmf.controller.VPDMfKnowledgeBaseBuilder;
@@ -143,7 +143,7 @@ ApplicationContext ctx;
 				 "-wd", wd
 				};
 
-		PreprocessTriageScores.main(args);
+		SetUpClassificationExperiment.main(args);
 				
 						
 	}

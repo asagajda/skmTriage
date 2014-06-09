@@ -96,10 +96,13 @@ public class RunEvaluationOld {
 					"-l", options.login, 
 					"-p",options.password
 			};
-			PreprocessTriageScores.main(args2);
+			SetUpClassificationExperiment.main(args2);
 			
 			String triageCorpusName = options.triageCorpus.replaceAll("\\s+", "_");
 			String targetCorpusName = options.targetCorpus.replaceAll("\\s+", "_");
+			triageCorpusName = triageCorpusName.replaceAll("\\/", "_");
+			targetCorpusName = targetCorpusName.replaceAll("\\/", "_");
+			
 			File dataDir2 = new File(dataDir.getPath() + 
 					"/" + targetCorpusName + 
 					"/" + triageCorpusName );

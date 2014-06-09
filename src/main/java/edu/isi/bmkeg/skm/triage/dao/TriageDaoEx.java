@@ -64,6 +64,9 @@ public interface TriageDaoEx {
 			String targetCorpus,
 			Map<Integer, String> pmidCodes) throws Exception;
 
+	void deleteExistingTriageScores(String triageCorpus, String targetCorpus)
+			throws Exception;
+
 
 
 	// ~~~~~~~~~~~~~~~~~~~~~~~~~

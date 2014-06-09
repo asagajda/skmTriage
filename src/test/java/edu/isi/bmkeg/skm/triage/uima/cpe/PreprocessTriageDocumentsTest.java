@@ -15,7 +15,7 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 import edu.isi.bmkeg.digitalLibrary.dao.ExtendedDigitalLibraryDao;
-import edu.isi.bmkeg.skm.triage.cleartk.bin.PreprocessTriageScores;
+import edu.isi.bmkeg.skm.triage.cleartk.bin.SetUpClassificationExperiment;
 import edu.isi.bmkeg.utils.Converters;
 import edu.isi.bmkeg.utils.springContext.AppContext;
 import edu.isi.bmkeg.utils.springContext.BmkegProperties;
@@ -80,7 +80,7 @@ public class PreprocessTriageDocumentsTest {
 				"-db", dbUrl 
 				};
 
-		PreprocessTriageScores.main(args);
+		SetUpClassificationExperiment.main(args);
 		
 		// checks output files include all instances
 		

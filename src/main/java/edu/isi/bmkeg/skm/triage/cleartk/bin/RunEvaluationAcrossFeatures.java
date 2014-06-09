@@ -36,19 +36,7 @@ public class RunEvaluationAcrossFeatures {
 
 		@Option(name = "-nFolds", usage = "N folds for cross validation")
 		public int nFolds = 4;
-		
-		@Option(name = "-l", usage = "Database login")
-		public String login = "";
-
-		@Option(name = "-p", usage = "Database password")
-		public String password = "";
-
-		@Option(name = "-db", usage = "Database name")
-		public String dbName = "";
-
-		@Option(name = "-wd", usage = "Working Directory")
-		public File workingDirectory;
-		
+				
 	}
 
 	public static void main(String[] args) throws Exception {
@@ -74,22 +62,30 @@ public class RunEvaluationAcrossFeatures {
 					<String,AnnotationStatistics<String>>();
 			statsList.add(statsMap);
 			
+			String triageCorpusName = options.triageCorpus.replaceAll("\\s+", "_");
+			String targetCorpusName = options.targetCorpus.replaceAll("\\s+", "_");
+
+			triageCorpusName = triageCorpusName.replaceAll("\\/", "_");
+			targetCorpusName = targetCorpusName.replaceAll("\\/", "_");
+
+			File baseData = new File(dir.getPath() + 
+					"/" + targetCorpusName + 
+					"/" + triageCorpusName + 
+					"/baseData" );
+
+			
 			File dataDir = new File(dir.getPath() + "/" + i + "/data");
 			dataDir.mkdirs();
+
 			String[] args2 = new String[] { 
 					"-triageCorpus", options.triageCorpus,
 					"-targetCorpus", options.targetCorpus,
 					"-dir", dataDir.getPath(),
 					"-prop", options.prop + "",
-					"-db", options.dbName, 
-					"-l", options.login, 
-					"-p",options.password,
-					"-wd", options.workingDirectory.getPath()
+					"-baseData", baseData.getPath()
 			};
-			PreprocessTriageScores.main(args2);
-			
-			String triageCorpusName = options.triageCorpus.replaceAll("\\s+", "_");
-			String targetCorpusName = options.targetCorpus.replaceAll("\\s+", "_");
+			SetUpClassificationExperiment.main(args2);
+						
 			File dataDir2 = new File(dataDir.getPath() + 
 					"/" + targetCorpusName + 
 					"/" + triageCorpusName );
@@ -122,7 +118,7 @@ public class RunEvaluationAcrossFeatures {
 					uniBiDir,
 					Arrays.asList("-t", "0"),
 					LibSvmBooleanOutcomeDataWriter.class.getName(),
-					"BigramCountAnnotator",
+					"Uni_and_BigramCountAnnotator",
 					options.nFolds,
 					dataDir2);
 			statsMap.put("uni+bigrams", eval4.runTrainAndTestOnly());

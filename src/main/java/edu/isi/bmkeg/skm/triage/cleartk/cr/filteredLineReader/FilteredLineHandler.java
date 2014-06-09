@@ -47,7 +47,6 @@ public class FilteredLineHandler implements LineHandler {
 
 	// These values must be instantiated from the FilteredLineReader initialization step. 
 	String delimiter;
-	Set<Integer> ids;
 	
 	public void initialize(UimaContext context)
 			throws ResourceInitializationException {
