@@ -16,7 +16,6 @@ import edu.isi.bmkeg.skm.triage.cleartk.instrinsicEval.CrossValEval_Multiway;
 import edu.isi.bmkeg.skm.triage.cleartk.utils.Options_ImplBase;
 
 public class RunEvaluationAcrossFeatures {
-
 	
 	public static class Options extends Options_ImplBase {
 		@Option(name = "-triageCorpus", usage = "The triage corpus to be evaluated")
@@ -69,9 +68,7 @@ public class RunEvaluationAcrossFeatures {
 			targetCorpusName = targetCorpusName.replaceAll("\\/", "_");
 
 			File baseData = new File(dir.getPath() + 
-					"/" + targetCorpusName + 
-					"/" + triageCorpusName + 
-					"/baseData" );
+					"/baseData");
 
 			
 			File dataDir = new File(dir.getPath() + "/" + i + "/data");
@@ -84,7 +81,7 @@ public class RunEvaluationAcrossFeatures {
 					"-prop", options.prop + "",
 					"-baseData", baseData.getPath()
 			};
-			SetUpClassificationExperiment.main(args2);
+			//SetUpClassificationExperiment.main(args2);
 						
 			File dataDir2 = new File(dataDir.getPath() + 
 					"/" + targetCorpusName + 
@@ -95,7 +92,7 @@ public class RunEvaluationAcrossFeatures {
 			CrossValEval_Multiway eval2 = new CrossValEval_Multiway(
 					unigramDir,
 					Arrays.asList("-t", "0"),
-					LibSvmBooleanOutcomeDataWriter.class.getName(),
+					"LibSvm",
 					"UnigramCountAnnotator",
 					options.nFolds,
 					dataDir2);
@@ -106,7 +103,7 @@ public class RunEvaluationAcrossFeatures {
 			CrossValEval_Multiway eval3 = new CrossValEval_Multiway(
 					bigramDir,
 					Arrays.asList("-t", "0"),
-					LibSvmBooleanOutcomeDataWriter.class.getName(),
+					"LibSvm",
 					"BigramCountAnnotator",
 					options.nFolds,
 					dataDir2);
@@ -117,7 +114,7 @@ public class RunEvaluationAcrossFeatures {
 			CrossValEval_Multiway eval4 = new CrossValEval_Multiway(
 					uniBiDir,
 					Arrays.asList("-t", "0"),
-					LibSvmBooleanOutcomeDataWriter.class.getName(),
+					"LibSvm",
 					"Uni_and_BigramCountAnnotator",
 					options.nFolds,
 					dataDir2);
@@ -128,7 +125,7 @@ public class RunEvaluationAcrossFeatures {
 			CrossValEval_Multiway eval5 = new CrossValEval_Multiway(
 					featureEngineerDir,
 					Arrays.asList("-t", "0"),
-					LibSvmBooleanOutcomeDataWriter.class.getName(),
+					"LibSvm",
 					"TfIdf_Annotator",
 					options.nFolds,
 					dataDir2);

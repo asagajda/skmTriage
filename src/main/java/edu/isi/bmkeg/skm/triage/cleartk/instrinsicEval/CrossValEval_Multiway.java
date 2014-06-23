@@ -129,7 +129,6 @@ public class CrossValEval_Multiway extends
 
 		super(baseDirectory, dataDir);
 		this.trainingArguments = trainingArguments;
-		this.dataWriterClassName = dataWriterClassName;
 		
 		if( !annotatorClassName.equals("BigramCountAnnotator") && 
 				!annotatorClassName.equals("TfIdf_Annotator") &&  
@@ -141,6 +140,20 @@ public class CrossValEval_Multiway extends
 					+ "'UnigramCountAnnotator' or "
 					+ "'Unigram_and_BigramCountAnnotator'");
 		
+		}
+		
+		if( dataWriterClassName.equals("LibSvm") ) {
+
+			this.dataWriterClassName = "org.cleartk.classifier.libsvm.LibSvmBooleanOutcomeDataWriter";
+		
+		} else {
+			
+			throw new Exception("dataWriterClassName must be 'LibSvm' or "
+					+ "'Mallet' or "
+					+ "'Maxent' or "
+					+ "'TkSvmLight' or "
+					+ "'TkSvmLight'");
+			
 		}
 		
 		this.annotatorClass = (Class<? extends AnalysisComponent>) 
@@ -228,7 +241,9 @@ public class CrossValEval_Multiway extends
 		 * transform on them
 		 */
 		logger.info("3. Write out model training data");
-		DataWriter<Boolean> dataWriter = createDataWriter(dataWriterClassName, outputDirectory);	
+		DataWriter<Boolean> dataWriter = createDataWriter(
+				this.dataWriterClassName, 
+				outputDirectory);	
 		for (Instance<Boolean> instance : instances) {
 			Instance<Boolean> instance2 = extractor1.transform(instance);
 			//Instance<Boolean> instance3 = extractor2.transform(instance2);
@@ -324,13 +339,16 @@ public class CrossValEval_Multiway extends
 		
 		try {
 
-			Class<? extends DataWriter<Boolean>> cls = 			
-			(Class<? extends DataWriter<Boolean>>) Class.forName(dataWriterClassName).asSubclass(DataWriter.class);
-			return cls.getConstructor(File.class).newInstance(outputDirectory);
+			Class<? extends DataWriter<Boolean>> cls = (Class<? extends DataWriter<Boolean>>) 
+					Class.forName(dataWriterClassName).asSubclass(DataWriter.class);
+			DataWriter<Boolean> dw = cls.getConstructor(File.class).newInstance(outputDirectory);
 
+			return dw;
+			
 		} catch (Exception e) {
 		
-			throw new IllegalStateException("Failed to create an instance of DataWriter<boolean> from classname: " + dataWriterClassName, e);
+			throw new IllegalStateException("Failed to create an instance of DataWriter<boolean> " +
+					"from classname: " + dataWriterClassName, e);
 		
 		}
 	

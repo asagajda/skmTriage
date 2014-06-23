@@ -21,19 +21,19 @@ public class SetUpClassificationExperiment {
 
 	public static class Options extends Options_ImplBase {
 		
-		@Option(name = "-triageCorpus", usage = "The triage corpus to be evaluated")
+		@Option(name = "-triageCorpus", required = true, usage = "The triage corpus to be evaluated")
 		public String triageCorpus = "";
 
-		@Option(name = "-targetCorpus", usage = "The target corpus to be evaluated")
+		@Option(name = "-targetCorpus", required = true, usage = "The target corpus to be evaluated")
 		public String targetCorpus = "";
 
-		@Option(name = "-dir", usage = "Data Directory for Experiment")
+		@Option(name = "-dir", required = true, usage = "Data Directory for Experiment")
 		public File dir;
 		
-		@Option(name = "-prop", usage = "Proportion of documents to be held out")
+		@Option(name = "-prop", required = true, usage = "Proportion of documents to be held out")
 		public float prop = 0.0f;
 
-		@Option(name = "-baseData", usage = "Base Data Directory")
+		@Option(name = "-baseData", required = true, usage = "Base Data Directory")
 		public File baseData;
 
 	}
@@ -50,10 +50,20 @@ public class SetUpClassificationExperiment {
 						"edu.isi.bmkeg.skm.cleartk.TypeSystem");
 		
 		Integer[] filterIds = new Integer[]{};
+				
+		String triageCorpusName = options.triageCorpus.replaceAll("\\s+", "_");
+		String targetCorpusName = options.targetCorpus.replaceAll("\\s+", "_");
+
+		triageCorpusName = triageCorpusName.replaceAll("\\/", "_");
+		targetCorpusName = targetCorpusName.replaceAll("\\/", "_");
+
+		File dataDir = new File(options.baseData.getPath() + 
+				"/" + targetCorpusName + 
+				"/" + triageCorpusName );
 		
 		CollectionReader cr = CollectionReaderFactory
 				.createCollectionReader( UnfilteredLineReader.class, typeSystem, 
-						UnfilteredLineReader.PARAM_FILE_OR_DIRECTORY_NAME, options.baseData.getPath(),
+						UnfilteredLineReader.PARAM_FILE_OR_DIRECTORY_NAME, dataDir.getPath(),
 						UnfilteredLineReader.PARAM_SUFFIXES, new String[]{".txt"},
 						UnfilteredLineReader.PARAM_DELIMITER, "\t");
 		
@@ -74,7 +84,7 @@ public class SetUpClassificationExperiment {
 	    		EvaluationPreparer.PARAM_TRIAGE_CORPUS_NAME, options.triageCorpus,
 	    		EvaluationPreparer.PARAM_TARGET_CORPUS_NAME, options.targetCorpus,
 	    		EvaluationPreparer.PARAM_P_HOLDOUT, options.prop,
-	    		EvaluationPreparer.PARAM_TOP_DIR_PATH, options.dir.getPath()));
+	    		EvaluationPreparer.PARAM_TOP_DIR_PATH, options.dir.getPath() + "/data"));
 	    
 	    // ///////////////////////////////////////////
 	    // Run pipeline to create training data file

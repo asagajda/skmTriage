@@ -345,19 +345,19 @@ public class TriageScoreCollectionReader extends JCasCollectionReader_ImplBase {
 			for( Element el : bodyEl.getAllElements() ) {
 				List<Node> links = new ArrayList<Node>();
 				for(Node n: el.select("a")) {
-					this.addFormattingSuffixes((Element) n, "___A");
-				}
+					this.addFormattingSuffixes((Element) n, "A");
+				} 
 				for(Node n: el.select("i")) {
-					this.addFormattingSuffixes((Element) n, "___I");
+					this.addFormattingSuffixes((Element) n, "I");
 				}
 				for(Node n: el.select("b")) {
-					this.addFormattingSuffixes((Element) n, "___B");
+					this.addFormattingSuffixes((Element) n, "B");
 				}
 				for(Node n: el.select("sup")) {
-					this.addFormattingSuffixes((Element) n, "___SUP");
+					this.addFormattingSuffixes((Element) n, "SUP");
 				}
 				for(Node n: el.select("sub")) {
-					this.addFormattingSuffixes((Element) n, "___SUB");
+					this.addFormattingSuffixes((Element) n, "SUB");
 				}
 			}
 		}		
@@ -388,14 +388,14 @@ public class TriageScoreCollectionReader extends JCasCollectionReader_ImplBase {
 	}
 	
 	private Element addFormattingSuffixes(Element el, String suffix) {
-		String t = el.text();
-		String tt = "";
-		for( String w : t.split("\\+") ) {
-			if( w.length() > 0 )
-				tt += w + suffix;
-		}
-		el.text(tt);
-
+		String t = el.text();;
+		String s = " __s_" + suffix + "__ ";
+		String e = " __e_" + suffix + "__ ";
+		
+		if( t.indexOf("__s_") == -1  && t.length() > 0) {
+			el.text( s + t + e );
+		} 
+		
 		return el;
 	}
 		
