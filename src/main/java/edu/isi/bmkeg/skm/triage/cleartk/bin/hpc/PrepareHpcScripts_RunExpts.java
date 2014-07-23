@@ -87,7 +87,7 @@ public class PrepareHpcScripts_RunExpts {
 						" -dir \"" + options.dir + "/" + i + "\" " +
 						" -features \"" + f + "Annotator\" " +
 						" -classifier \"" + options.classifier + "\" " +
-						" -params \"" + options.params + "\" ";
+						" -params \"" + options.params + "\"\n\n";
 				
 				String sig = i + "_" + f + "_" + options.classifier + "_" + 
 						options.params.replaceAll("\\s+", "");

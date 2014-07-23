@@ -8,14 +8,14 @@ import java.util.List;
 import java.util.Map;
 
 import org.apache.commons.io.FileUtils;
-import org.cleartk.classifier.libsvm.LibSvmBooleanOutcomeDataWriter;
 import org.cleartk.eval.AnnotationStatistics;
 import org.kohsuke.args4j.Option;
 
-import edu.isi.bmkeg.skm.triage.cleartk.instrinsicEval.CrossValEval_Multiway;
+import edu.isi.bmkeg.skm.triage.cleartk.annotators.MutualInformation_Annotator;
+import edu.isi.bmkeg.skm.triage.cleartk.instrinsicEval.CrossValEval_FeatureSelection;
 import edu.isi.bmkeg.skm.triage.cleartk.utils.Options_ImplBase;
 
-public class RunEvaluation {
+public class AnalyzeFeatures {
 
 	public static class Options extends Options_ImplBase {
 		@Option(name = "-triageCorpus", required = true, usage = "The triage corpus to be evaluated")
@@ -27,18 +27,18 @@ public class RunEvaluation {
 		@Option(name = "-dir", required = true,  usage = "Base directory")
 		public File dir;
 
-		@Option(name = "-features", required = true, usage = "The feature set to be used")
-		public String features = "";
+		@Option(name = "-classifier", required = false, usage = "The classifier to be used")
+		public String engine = "LibLinear";
 
-		@Option(name = "-classifier", required = true, usage = "The classifier to be used")
-		public String engine = "";
-
-		@Option(name = "-params", required = true, usage = "Parameters for the classifier")
-		public String params = "";
+		@Option(name = "-params", required = false, usage = "Parameters for the classifier")
+		public String params = "-t 0";
 
 		@Option(name = "-nFolds", required = false, usage = "N folds for cross validation")
 		public int nFolds = 4;
 				
+		@Option(name = "-mode", required = false, usage = "[uni / bi / tri / all]")
+		public String mode = "uni";
+		
 	}
 
 	public static void main(String[] args) throws Exception {
@@ -69,24 +69,38 @@ public class RunEvaluation {
 					"/data/" + targetCorpusName + 
 					"/" + triageCorpusName );
 			
-		File analysisDir = new File(dir.getPath() + "/" + options.features + "/" + options.engine);
+		File analysisDir = new File(dir.getPath() + "/MutualInformation/" + options.engine);
 		analysisDir.mkdirs();			
-		CrossValEval_Multiway eval2 = new CrossValEval_Multiway(
+		CrossValEval_FeatureSelection eval2 = new CrossValEval_FeatureSelection(
 					analysisDir,
 					Arrays.asList(options.params.split("\\s+")),
 					options.engine,
-					options.features,
 					options.nFolds,
 					dataDir2);
 			
-		AnnotationStatistics<String> stats = eval2.runTrainAndTestOnly();
+		String mode = MutualInformation_Annotator.UNI_MODE;
+		if( options.mode.equals("uni") ) {
+			mode = MutualInformation_Annotator.UNI_MODE;
+		} else if( options.mode.equals("bi") ) {
+			mode = MutualInformation_Annotator.BI_MODE;
+		} else if( options.mode.equals("tri") ) {
+			mode = MutualInformation_Annotator.TRI_MODE;
+		} else if( options.mode.equals("all") ) {
+			mode = MutualInformation_Annotator.ALL_MODE;
+		} else {
+			throw new Exception(options.mode + " is not uni / bi / tri / all");
+		}
+			
+		eval2.runFeatureAnalysis(mode);
+		
+		/*AnnotationStatistics<String> stats = 
 						
 		StringBuilder sb = new StringBuilder();
 		sb.append("features\tengine\tparams\tP\tR\tF1\t#gold\t#system\t#correct\tCategory\n");
 		String raw = stats.toString();
 		String[] lines = raw.split("\n");
 		for( int j=1; j<lines.length; j++) {
-			sb.append( options.features );
+			sb.append( "MutualInformation" );
 			sb.append( "\t" );
 			sb.append( options.engine );
 			sb.append( "\t" );
@@ -97,10 +111,10 @@ public class RunEvaluation {
 		}
 		String results = sb.toString();
 		File resultsFile = new File(dir.getPath() + "/results_" + 
-				options.features + "_" + 
+				"MutualInformation" + "_" + 
 				options.engine + "_" + 
 				options.params.replaceAll("\\s+", "") +".txt");
-		FileUtils.writeStringToFile(resultsFile, results);
+		FileUtils.writeStringToFile(resultsFile, results);*/
 		
 	}
 	

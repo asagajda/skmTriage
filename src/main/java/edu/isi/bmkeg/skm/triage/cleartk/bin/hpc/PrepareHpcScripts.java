@@ -64,7 +64,7 @@ public class PrepareHpcScripts {
 					" -targetCorpus \"" + options.targetCorpus + "\" " + 
 					" -dir \"" + options.dir + "/" + i + "\" " +
 					" -prop \""+ options.prop + "\" " + 
-					" -baseData \"" + options.dir + "/baseData\"";
+					" -baseData \"" + options.dir + "/baseData\"\n\n";
 			
 			File setUpClExptScriptFile = new File(options.dir.getPath() + 
 					"/pbsScripts/setUpExpt_" + i + ".pbs"

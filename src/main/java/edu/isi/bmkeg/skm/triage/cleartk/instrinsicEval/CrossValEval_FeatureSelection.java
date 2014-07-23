@@ -24,7 +24,6 @@
 package edu.isi.bmkeg.skm.triage.cleartk.instrinsicEval;
 
 import java.io.File;
-import java.io.IOException;
 import java.net.URI;
 import java.util.Arrays;
 import java.util.Collection;
@@ -39,6 +38,7 @@ import org.cleartk.classifier.CleartkAnnotator;
 import org.cleartk.classifier.DataWriter;
 import org.cleartk.classifier.Instance;
 import org.cleartk.classifier.feature.selection.MutualInformationFeatureSelectionExtractor;
+import org.cleartk.classifier.feature.selection.MutualInformationFeatureSelectionExtractor.CombineScoreMethod;
 import org.cleartk.classifier.feature.transform.InstanceDataWriter;
 import org.cleartk.classifier.feature.transform.InstanceStream;
 import org.cleartk.classifier.feature.transform.extractor.TfidfExtractor;
@@ -51,7 +51,6 @@ import org.cleartk.eval.AnnotationStatistics;
 import org.cleartk.syntax.opennlp.SentenceAnnotator;
 import org.cleartk.token.stem.snowball.DefaultSnowballStemmer;
 import org.cleartk.token.tokenizer.TokenAnnotator;
-import org.cleartk.token.type.Token;
 import org.uimafit.component.ViewTextCopierAnnotator;
 import org.uimafit.factory.AggregateBuilder;
 import org.uimafit.factory.AnalysisEngineFactory;
@@ -64,6 +63,7 @@ import com.google.common.base.Function;
 
 import edu.isi.bmkeg.skm.cleartk.type.CatorgorizedFtdText;
 import edu.isi.bmkeg.skm.triage.cleartk.annotators.GoldDocumentCategoryAnnotator;
+import edu.isi.bmkeg.skm.triage.cleartk.annotators.MutualInformation_Annotator;
 import edu.isi.bmkeg.skm.triage.cleartk.annotators.TfIdf_Annotator;
 
 /**
@@ -121,21 +121,57 @@ public class CrossValEval_FeatureSelection extends
 			List<String> trainingArguments,
 			String dataWriterClassName,			
 			int nFolds,
-			File dataDir) {
+			File dataDir) throws Exception {
 
 		super(baseDirectory, dataDir);
 		this.trainingArguments = trainingArguments;
-		this.dataWriterClassName = dataWriterClassName;
+		
+		if( dataWriterClassName.equals("LibSvm") ) {
+
+			this.dataWriterClassName = "org.cleartk.classifier.libsvm.LibSvmBooleanOutcomeDataWriter";
+		
+		} else if( dataWriterClassName.equals("LibLinear") ) {
+
+			this.dataWriterClassName = "org.cleartk.classifier.liblinear.LibLinearBooleanOutcomeDataWriter";
+		
+		} else if( dataWriterClassName.equals("Mallet") ) {
+
+			this.dataWriterClassName = "org.cleartk.classifier.mallet.MalletBooleanOutcomeDataWriter";
+		
+		} else {
+			
+			throw new Exception("dataWriterClassName must be 'LibSvm' or "
+					+ "'Mallet' or "
+					+ "'LibLinear'");
+			
+		}
+
 		this.nFolds = nFolds;
 	}
 
-	@Override
-	public void train(CollectionReader collectionReader, File outputDirectory)
+	public void runFeatureAnalysis(String mode)
 			throws Exception {
 
-		// ////////////////////////////////////////////////////////////////////////////////
-		// Step 1: Extract features and serialize the raw instance objects
-		// ////////////////////////////////////////////////////////////////////////////////
+		File trainingDir = new File (this.dataDirectory.getPath() + "/train");
+		File testingDir = new File (this.dataDirectory.getPath() + "/test");
+		
+		List<File> trainFiles = getFilesFromDirectory(trainingDir);
+		List<File> testFiles = getFilesFromDirectory(testingDir);
+		
+		this.trainIds = this.loadIdsFromFiles(trainFiles);
+		this.testIds = this.loadIdsFromFiles(testFiles);
+		
+		File outputDirectory = new File(this.baseDirectory, "feature_selection");
+		outputDirectory.mkdirs();
+	    
+	    CollectionReader collectionReader = this.getCollectionReader(trainIds);
+
+	    
+		logger.info("Running feature analysis in " + mode + " mode.");
+	    
+		/**
+		 *  Step 1: Extract features and serialize the raw instance objects
+		 */
 		logger.info("1. Extracting features and writing raw instances data");
 
 		// Create and run the document classification training pipeline
@@ -148,17 +184,18 @@ public class CrossValEval_FeatureSelection extends
 		builder.add(AnalysisEngineFactory
 				.createPrimitiveDescription(GoldDocumentCategoryAnnotator.class));
 
-		// TF-IDF annotator, need to use InstandDataWriter to save the raw 
-		// scores for subsequent inclusion intot 
+		// Mutual information annotator, need to use InstanceDataWriter 
+		// to save the raw scores for subsequent inclusion into the pile of stuff
 		builder.add(AnalysisEngineFactory.createPrimitiveDescription(
-				TfIdf_Annotator.class,
+				MutualInformation_Annotator.class,
+				MutualInformation_Annotator.PARAM_MODE, mode,
 				CleartkAnnotator.PARAM_IS_TRAINING, true,
 				DefaultDataWriterFactory.PARAM_DATA_WRITER_CLASS_NAME, InstanceDataWriter.class.getName(),
 				DirectoryDataWriterFactory.PARAM_OUTPUT_DIRECTORY, outputDirectory));
 
 		// run the pipeline
-		SimplePipeline.runPipeline(collectionReader,
-				builder.createAggregateDescription());
+		//SimplePipeline.runPipeline(collectionReader,
+		//		builder.createAggregateDescription());
 		
 		/**
 		 * Step 2: Transform features and write training data
@@ -167,34 +204,61 @@ public class CrossValEval_FeatureSelection extends
 		 * Then the adjusted values are written with a DataWriter
 		 * for training
 		 */
-		logger.info("2. Collection feature normalization statistics");
-
+		logger.info("2. Calculate mutual information orderings over features");
 		// Load the serialized instance data
-		Iterable<Instance<Boolean>> instances = InstanceStream
-				.loadFromDirectory(outputDirectory);
+		Iterable<Instance<Boolean>> instances = InstanceStream.loadFromDirectory(outputDirectory);
 
-		// Collect TF*IDF stats for computing tf*idf values on extracted tokens
-		URI unigramTfIdfDataURI = TfIdf_Annotator.createTokenTfIdfDataURI(outputDirectory, "unigram");
-		TfidfExtractor<Boolean, DocumentAnnotation> extractor1 = new TfidfExtractor<Boolean, DocumentAnnotation>("unigram");
-		extractor1.train(instances);
-		/*extractor1.save(unigramTfIdfDataURI);*/
+		// Collect MI stats for computing MI values on extracted tokens
+		if( mode.equals(MutualInformation_Annotator.UNI_MODE) || 
+				mode.equals(MutualInformation_Annotator.ALL_MODE) ) {
 		
-		/*URI bigramTfIdfDataURI = MGI_FeatureEngineering_Annotator.createTokenTfIdfDataURI(outputDirectory, "bigram");
-		TfidfExtractor<Boolean, DocumentAnnotation> extractor2 = new TfidfExtractor<Boolean, DocumentAnnotation>("bigram");
-		extractor2.train(instances);
-		extractor2.save(bigramTfIdfDataURI);*/
+			URI unigramMIDataURI = MutualInformation_Annotator.createDataURI(
+					outputDirectory, 
+					MutualInformation_Annotator.PARAM_UNI_MI_URI);
+			MutualInformationFeatureSelectionExtractor<Boolean, DocumentAnnotation> extractor1 = 
+					new MutualInformationFeatureSelectionExtractor<Boolean, DocumentAnnotation>(
+							MutualInformation_Annotator.PARAM_UNI_MI_URI, 
+							null, 
+							CombineScoreMethod.AVERAGE,
+							1.0,
+							100);
+			extractor1.train(instances);
+			extractor1.save(unigramMIDataURI);
 
-		MutualInformationFeatureSelectionExtractor<Boolean, DocumentAnnotation> selector = 
-				new MutualInformationFeatureSelectionExtractor<Boolean, DocumentAnnotation>(
-				"mutualInformation", 
-				extractor1,
-				100);
-		
+		} else if( mode.equals(MutualInformation_Annotator.BI_MODE) || 
+				mode.equals(MutualInformation_Annotator.ALL_MODE) ) {
+
+			URI bigramMIDataURI = MutualInformation_Annotator.createDataURI(
+					outputDirectory, 
+					MutualInformation_Annotator.PARAM_BI_MI_URI);
+			MutualInformationFeatureSelectionExtractor<Boolean, DocumentAnnotation> extractor2 = 
+					new MutualInformationFeatureSelectionExtractor<Boolean, DocumentAnnotation>(
+							MutualInformation_Annotator.PARAM_BI_MI_URI, 
+							null, 
+							100);
+			extractor2.train(instances);
+			extractor2.save(bigramMIDataURI);
+
+		} else if( mode.equals(MutualInformation_Annotator.TRI_MODE) || 
+				mode.equals(MutualInformation_Annotator.ALL_MODE) ) {
+
+			URI trigramMIDataURI = MutualInformation_Annotator.createDataURI(
+					outputDirectory, 
+					MutualInformation_Annotator.PARAM_TRI_MI_URI);
+			MutualInformationFeatureSelectionExtractor<Boolean, DocumentAnnotation> extractor3 = 
+					new MutualInformationFeatureSelectionExtractor<Boolean, DocumentAnnotation>(
+							MutualInformation_Annotator.PARAM_TRI_MI_URI, 
+							null, 
+							100);
+			extractor3.train(instances);
+			extractor3.save(trigramMIDataURI);
+
+		}
 		
 		/**
 		 * Step 3: Iterate through the instances of existing features and run the tfIdf
 		 * transform on them
-		 */
+		 *
 		logger.info("3. Write out model training data");
 		DataWriter<Boolean> dataWriter = createDataWriter(dataWriterClassName, outputDirectory);	
 		for (Instance<Boolean> instance : instances) {
@@ -210,7 +274,14 @@ public class CrossValEval_FeatureSelection extends
 				.toArray(new String[this.trainingArguments.size()]);
 		HideOutput hider = new HideOutput();
 		JarClassifierBuilder.trainAndPackage(outputDirectory, tArgs);
-		hider.restoreOutput();
+		hider.restoreOutput();*/
+	}
+	
+	@Override
+	public void train(CollectionReader collectionReader, File outputDirectory)
+			throws Exception {
+		// TODO Auto-generated method stub
+		
 	}
 
 	@Override

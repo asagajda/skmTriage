@@ -23,6 +23,7 @@ import edu.isi.bmkeg.digitalLibrary.dao.ExtendedDigitalLibraryDao;
 import edu.isi.bmkeg.digitalLibrary.dao.impl.DigitalLibraryDaoImpl;
 import edu.isi.bmkeg.digitalLibrary.model.citations.ArticleCitation;
 import edu.isi.bmkeg.digitalLibrary.model.citations.Journal;
+import edu.isi.bmkeg.digitalLibrary.model.citations.JournalEpoch;
 import edu.isi.bmkeg.digitalLibrary.model.qo.citations.ArticleCitation_qo;
 import edu.isi.bmkeg.digitalLibrary.model.qo.citations.Corpus_qo;
 import edu.isi.bmkeg.ftd.model.FTDRuleSet;
@@ -129,19 +130,6 @@ public class ExtendedTriageServiceImpl implements
 
 			coreDao.getCe().connectToDB();
 			coreDao.getCe().turnOffAutoCommit();
-
-			// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-			// Go get the FTDRuleSet
-			//
-			/*FTDRuleSet rs = null;
-			if( ruleSetId != -1 ) {
-				rs = coreDao.findByIdInTrans(
-						ruleSetId, 
-						new FTDRuleSet(), 
-						"FTDRuleSet");
-			} else {
-				throw new Exception("Error with rule file, id: " + ruleSetId); 
-			}*/
 							
 			File cc = null;
 			if( codeFileContents != null && codeFileContents.length > 0) {
@@ -175,9 +163,17 @@ public class ExtendedTriageServiceImpl implements
 					+ pdfFile.getName() + ")" );
 			LapdfDocument doc = te.blockifyFile(pdfFile);
 
-			template.send("serverUpdates", "Classifying text blocks (" 
+			// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+			// What is the FTDRuleSet assigned to this journal epoch?
+			//
+			JournalEpoch je = this.extDigLibDao.retriveJournalEpochForCitation(ac);
+			if( je != null && je.getRules() != null) {
+				FTDRuleSet rs = je.getRules();	
+				File ruleFile = new File(workDir.getPath() + "/" + rs.getFilePath());
+				template.send("serverUpdates", "Classifying text blocks (" 
 					+ pdfFile.getName() + ")" );
-			te.classifyDocument(doc, te.getRuleFile());
+				te.classifyDocument(doc, te.getRuleFile());
+			}
 			
 			template.send("serverUpdates", "Add PDF to article citation (" 
 					+ pdfFile.getName() + ")" );
@@ -192,11 +188,14 @@ public class ExtendedTriageServiceImpl implements
 
 			te.getDigLibDao().getCoreDao().commitTransaction();
 
+			template.send("serverUpdates", fileName + " upload complete." );
+
 		} catch(Exception e) {
 			
 			coreDao.getCe().rollbackTransaction();
 			template.send("serverUpdates", fileName + " upload failed." );
-			logger.error(e.toString());
+			e.printStackTrace();
+			logger.error(e.toString(), e);
 			
 			return false;
 		
@@ -207,7 +206,6 @@ public class ExtendedTriageServiceImpl implements
 			
 		}
 
-		template.send("serverUpdates", fileName + " upload complete." );
 		return true;
 
 	}

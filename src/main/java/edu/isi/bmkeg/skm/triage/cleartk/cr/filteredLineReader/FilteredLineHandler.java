@@ -58,7 +58,12 @@ public class FilteredLineHandler implements LineHandler {
 
 		String id = line.substring(0, line.indexOf(delimiter));
 		String text = line.substring(line.indexOf(delimiter) + 1);
-		jCas.setSofaDataString(text, "text/plain");
+
+		// Here, process the HTML-based formatting tags.
+		// Let's just remove them completely to start with.
+		String newText = text.replaceAll("__(s|e)_(A|I|B|SUP|SUB)__","");
+		
+		jCas.setSofaDataString(newText, "text/plain");
 
 		URI uri;
 		try {

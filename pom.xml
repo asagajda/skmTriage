@@ -290,10 +290,15 @@
 			<artifactId>cleartk-token</artifactId>
 		</dependency> 
 	 					
-		<!--  <dependency>
+	 	<dependency>
+			<groupId>org.cleartk</groupId>
+			<artifactId>cleartk-summarization</artifactId>
+		</dependency> 
+	 					
+		<dependency>
 			<groupId>org.cleartk</groupId>
 			<artifactId>cleartk-ml-mallet</artifactId>
-		</dependency>-->
+		</dependency>
 
 		<!-- <dependency>
 			<groupId>edu.isi.bmkeg</groupId>

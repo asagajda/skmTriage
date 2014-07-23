@@ -97,14 +97,17 @@ public abstract class CrossValidationEvaluation extends
 		this.dataDirectory = dataDirectory;
 	}
 
-	public static List<File> getFilesFromDirectory(File directory) {
+	public static List<File> getFilesFromDirectory(File directory) throws Exception {
 		
 		IOFileFilter fileFilter = FileFilterUtils
 				.makeSVNAware(HiddenFileFilter.VISIBLE);
 		IOFileFilter dirFilter = FileFilterUtils.makeSVNAware(FileFilterUtils.andFileFilter(
 									  FileFilterUtils.directoryFileFilter(),
 									  HiddenFileFilter.VISIBLE));
-									 
+		
+		if( !directory.exists() || !directory.isDirectory() )
+			throw new Exception(directory.getPath() + " is not a directory!");
+		
 		return new ArrayList<File>(
 				FileUtils.listFiles(directory, fileFilter, dirFilter)
 				);

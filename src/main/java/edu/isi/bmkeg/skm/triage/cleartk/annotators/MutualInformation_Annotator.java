@@ -47,6 +47,7 @@ import org.cleartk.classifier.feature.function.FeatureFunctionExtractor.BaseFeat
 import org.cleartk.classifier.feature.function.LowerCaseFeatureFunction;
 import org.cleartk.classifier.feature.selection.MutualInformationFeatureSelectionExtractor;
 import org.cleartk.classifier.feature.transform.extractor.TfidfExtractor;
+import org.cleartk.classifier.jar.DirectoryDataWriterFactory;
 import org.cleartk.token.type.Token;
 import org.uimafit.descriptor.ConfigurationParameter;
 import org.uimafit.factory.ConfigurationParameterFactory;
@@ -67,29 +68,49 @@ import org.uimafit.factory.ConfigurationParameterFactory;
  */
 public class MutualInformation_Annotator extends CategorizedFtdAnnotator {
 	
-	private static Logger logger = Logger.getLogger(TfIdfCentroidAnnotator.class);
-	
-	public static final String PARAM_UNI_TF_IDF_URI = "uniTfIdfUri";
-	@ConfigurationParameter(
-			name = PARAM_UNI_TF_IDF_URI,
-			mandatory = false, 
-			description = "provides a URI where the tf*idf map will be written")
-	private URI uniTfIdfUri;
+	private static Logger logger = Logger.getLogger(MutualInformation_Annotator.class);
 
-	public static final String PARAM_BI_TF_IDF_URI = "biTfIdfUri";
-	@ConfigurationParameter(
-			name = PARAM_BI_TF_IDF_URI,
-			mandatory = false, 
-			description = "provides a URI where the tf*idf map will be written")
-	private URI biTfIdfUri;
+	public static final String UNI_MODE = "uni";
+	public static final String BI_MODE = "bi";
+	public static final String TRI_MODE = "tri";
+	public static final String ALL_MODE = "all";
 	
-	private int count = 0;
-
+	public static final String PARAM_MODE = "miMode";
+	@ConfigurationParameter(
+			name = PARAM_MODE,
+			mandatory = false, 
+			description = "set this this parameter to the URI for unigram MI scores")
+	private String mode = UNI_MODE;
+	
+	public static final String PARAM_UNI_MI_URI = "uniMiUri";
+	@ConfigurationParameter(
+			name = PARAM_UNI_MI_URI,
+			mandatory = false, 
+			description = "set this this parameter to the URI for biigram MI scores")
+	private URI uniMiUri;
+	
 	private MutualInformationFeatureSelectionExtractor<Boolean, DocumentAnnotation> miExtractor1;
+	
+	public static final String PARAM_BI_MI_URI = "biMiUri";
+	@ConfigurationParameter(
+			name = PARAM_BI_MI_URI,
+			mandatory = false, 
+			description = "set this this parameter to the URI for triigram MI scores")
+	private URI biMiUri;
+	
 	private MutualInformationFeatureSelectionExtractor<Boolean, DocumentAnnotation> miExtractor2;
 			
-	public static URI createTokenTfIdfDataURI(File outputDirectoryName, String code) {
-		File f = new File(outputDirectoryName, code + "_tfidf_extractor.dat");
+	public static final String PARAM_TRI_MI_URI = "triMiUri";
+	@ConfigurationParameter(
+			name = PARAM_TRI_MI_URI,
+			mandatory = false, 
+			description = "provides a URI where the trigram MI scores will be written")
+	private URI triMiUri;
+	
+	private MutualInformationFeatureSelectionExtractor<Boolean, DocumentAnnotation> miExtractor3;
+	
+	public static URI createDataURI(File outputDirectoryName, String code) {
+		File f = new File(outputDirectoryName, code + "_mi_extractor.dat");
 		return f.toURI();
 	}
 
@@ -108,42 +129,40 @@ public class MutualInformation_Annotator extends CategorizedFtdAnnotator {
 					        lowerCaseExtractor1,
 					        new CleartkExtractor.Count(new CleartkExtractor.Covered()));
 
-		this.miExtractor1 = new MutualInformationFeatureSelectionExtractor<Boolean, DocumentAnnotation>("miUnigram", uniExtractor);
-
-		Object uniTfIdfContext = context.getConfigParameterValue(PARAM_UNI_TF_IDF_URI);
+		this.miExtractor1 = new MutualInformationFeatureSelectionExtractor<Boolean, DocumentAnnotation>(
+				PARAM_UNI_MI_URI, 
+				uniExtractor);
+		
+		Object uniMiContext = context.getConfigParameterValue(PARAM_UNI_MI_URI);
 		try {
-			if( uniTfIdfContext != null ) {
-				this.uniTfIdfUri = new URI( (String) uniTfIdfContext);
-				miExtractor1.load(this.uniTfIdfUri);
+			if( uniMiContext != null ) {
+				this.uniMiUri = new URI( (String) uniMiContext);
+				miExtractor1.load(this.uniMiUri);
 			 }
 		} catch (IOException e) {
 			throw new ResourceInitializationException(e);
 		} catch (URISyntaxException e) {
 			throw new ResourceInitializationException(e);
 		}
-		
-	    FeatureExtractor1<Token> lowerCaseExtractor2 = new FeatureFunctionExtractor<Token>(
-				new CoveredTextExtractor<Token>(),
-				BaseFeatures.EXCLUDE,
-				new LowerCaseFeatureFunction());
 
-		CleartkExtractor<Token, Token> biExtractor = new CleartkExtractor<Token, Token>(Token.class,
-				lowerCaseExtractor2,
+		CleartkExtractor<Token, Token> biExtractor1 = new CleartkExtractor<Token, Token>(Token.class,
+				lowerCaseExtractor1,
 			    new Ngram(new Preceding(1), new Focus()));
+		
+		CleartkExtractor<DocumentAnnotation, Token> biExtractor2 =  
+				   new CleartkExtractor<DocumentAnnotation, Token>(Token.class,
+						   biExtractor1,
+					        new CleartkExtractor.Count(new CleartkExtractor.Covered()));
+		
+		this.miExtractor2 = new MutualInformationFeatureSelectionExtractor<Boolean, DocumentAnnotation>(
+				PARAM_BI_MI_URI, 
+				biExtractor2);
 
-		 CleartkExtractor<DocumentAnnotation, Token> countBiExtractor = 
-				 new CleartkExtractor<DocumentAnnotation, Token>(Token.class, biExtractor,
-						 new CleartkExtractor.Count(new CleartkExtractor.Covered())
-				 );
-
-		this.miExtractor2 = 
-				   new MutualInformationFeatureSelectionExtractor<Boolean, DocumentAnnotation>("miBigram", countBiExtractor);
-
-		Object biTfIdfContext = context.getConfigParameterValue(PARAM_BI_TF_IDF_URI);
+		Object biMiContext = context.getConfigParameterValue(PARAM_BI_MI_URI);
 		try {
-			if( biTfIdfContext != null ) {
-				this.biTfIdfUri = new URI( (String) biTfIdfContext);
-				miExtractor2.load(this.biTfIdfUri);
+			if( biMiContext != null ) {
+				this.biMiUri = new URI( (String) biMiContext);
+				miExtractor2.load(this.biMiUri);
 			 }
 		} catch (IOException e) {
 			throw new ResourceInitializationException(e);
@@ -151,6 +170,31 @@ public class MutualInformation_Annotator extends CategorizedFtdAnnotator {
 			throw new ResourceInitializationException(e);
 		}
 		
+		CleartkExtractor<Token, Token> triExtractor1 = new CleartkExtractor<Token, Token>(Token.class,
+				lowerCaseExtractor1,
+			    new Ngram(new Preceding(2), new Focus()));
+		
+		CleartkExtractor<DocumentAnnotation, Token> triExtractor2 =  
+				   new CleartkExtractor<DocumentAnnotation, Token>(Token.class,
+						   triExtractor1,
+					        new CleartkExtractor.Count(new CleartkExtractor.Covered()));
+		
+		this.miExtractor3 = new MutualInformationFeatureSelectionExtractor<Boolean, DocumentAnnotation>(
+				PARAM_TRI_MI_URI, 
+				triExtractor2);
+
+		Object triMiContext = context.getConfigParameterValue(PARAM_TRI_MI_URI);
+		try {
+			if( triMiContext != null ) {
+				this.triMiUri = new URI( (String) triMiContext);
+				miExtractor3.load(this.triMiUri);
+			 }
+		} catch (IOException e) {
+			throw new ResourceInitializationException(e);
+		} catch (URISyntaxException e) {
+			throw new ResourceInitializationException(e);
+		}
+	
 	}
 
 	public void process(JCas jCas) throws AnalysisEngineProcessException {
@@ -162,8 +206,24 @@ public class MutualInformation_Annotator extends CategorizedFtdAnnotator {
 				.getDocumentAnnotationFs();
 				
 		Instance<Boolean> instance = new Instance<Boolean>();
-		instance.addAll( this.miExtractor1.extract(jCas, doc) );
-		instance.addAll( this.miExtractor2.extract(jCas, doc) );
+		
+		if( mode.equals(UNI_MODE) || mode.equals(ALL_MODE) ) {
+			
+			instance.addAll( this.miExtractor1.extract(jCas, doc) );	
+		
+		} else if( mode.equals(BI_MODE) || mode.equals(ALL_MODE) ) {
+			
+			instance.addAll( this.miExtractor2.extract(jCas, doc) );
+			
+		} else if( mode.equals(TRI_MODE) || mode.equals(ALL_MODE) ) {
+
+			instance.addAll( this.miExtractor3.extract(jCas, doc) );
+
+		} else {
+		
+			instance.addAll( this.miExtractor1.extract(jCas, doc) );	
+			
+		}
 		
 		if (isTraining()) {
 			
@@ -173,8 +233,8 @@ public class MutualInformation_Annotator extends CategorizedFtdAnnotator {
 			
 		} else {
 			
-			if( this.uniTfIdfUri == null ) { //|| this.biTfIdfUri == null ) {
-				throw new AnalysisEngineProcessException(new Exception("Must have instantiated TF-IDF counts"));
+			/*if( this.uniMiUri == null ) { //|| this.biTfIdfUri == null ) {
+				throw new AnalysisEngineProcessException(new Exception("Must have instantiated MI scores"));
 			}
 			
 			TfidfExtractor<Boolean, DocumentAnnotation> extractor1 = 
@@ -183,7 +243,7 @@ public class MutualInformation_Annotator extends CategorizedFtdAnnotator {
 			//TfidfExtractor<Boolean, DocumentAnnotation> extractor2 = 
 			//		new TfidfExtractor<Boolean, DocumentAnnotation>("biigram");
 			//Instance<Boolean> instance3 = extractor2.transform(instance2);
-			createCategorizedFtdAnnotation(jCas, instance2.getFeatures());
+			createCategorizedFtdAnnotation(jCas, instance2.getFeatures());*/
 		
 		}
 		

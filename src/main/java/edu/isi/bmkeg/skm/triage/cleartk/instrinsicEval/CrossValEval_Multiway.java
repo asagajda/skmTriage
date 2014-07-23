@@ -25,6 +25,7 @@ package edu.isi.bmkeg.skm.triage.cleartk.instrinsicEval;
 
 import java.io.File;
 import java.net.URI;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
@@ -61,7 +62,6 @@ import org.uimafit.util.JCasUtil;
 import com.google.common.base.Function;
 
 import edu.isi.bmkeg.skm.cleartk.type.CatorgorizedFtdText;
-import edu.isi.bmkeg.skm.triage.cleartk.annotators.BigramCountAnnotator;
 import edu.isi.bmkeg.skm.triage.cleartk.annotators.GoldDocumentCategoryAnnotator;
 import edu.isi.bmkeg.skm.triage.cleartk.annotators.TfIdf_Annotator;
 
@@ -94,6 +94,8 @@ public class CrossValEval_Multiway extends
 
 	public List<String> trainingArguments;
 
+	public boolean dumpTrainingDataFirstFlag = false;
+
 	public Class<? extends AnalysisComponent> annotatorClass;
 	
 	public String dataWriterClassName;
@@ -123,41 +125,54 @@ public class CrossValEval_Multiway extends
 	public CrossValEval_Multiway(File baseDirectory,
 			List<String> trainingArguments,
 			String dataWriterClassName,			
-			String annotatorClassName,			
+			String features,			
 			int nFolds,
 			File dataDir) throws Exception {
 
 		super(baseDirectory, dataDir);
 		this.trainingArguments = trainingArguments;
 		
-		if( !annotatorClassName.equals("BigramCountAnnotator") && 
-				!annotatorClassName.equals("TfIdf_Annotator") &&  
-				!annotatorClassName.equals("UnigramCountAnnotator") && 
-				!annotatorClassName.equals("Uni_and_BigramCountAnnotator") ) {
+		/*
+		 * Restrict options for types of feature sets allowed here.
+		 */
+		if( !features.equals("BigramCount") && 
+				!features.equals("TfIdf") &&  
+				!features.equals("UnigramCount") && 
+				!features.equals("Uni_and_BigramCount") && 
+				!features.equals("AlleleMutantPattern")) {
 			
-			throw new Exception("annotationClassName must be 'BigramCountAnnotator' or "
-					+ "'TfIdf_Annotator' or "
-					+ "'UnigramCountAnnotator' or "
-					+ "'Unigram_and_BigramCountAnnotator'");
+			throw new Exception("annotationClassName must be " +
+					"'BigramCount' or " +
+					"'TfIdf' or " + 
+					"'UnigramCount' or " + 
+					"'Unigram_and_BigramCount' or " +
+					"'AlleleMutantPattern'");
 		
+		}
+
+		if(features.equals("TfIdf_Annotator")) {
+			dumpTrainingDataFirstFlag = true;
 		}
 		
 		if( dataWriterClassName.equals("LibSvm") ) {
 
 			this.dataWriterClassName = "org.cleartk.classifier.libsvm.LibSvmBooleanOutcomeDataWriter";
 		
+		} else if( dataWriterClassName.equals("LibLinear") ) {
+
+			this.dataWriterClassName = "org.cleartk.classifier.liblinear.LibLinearBooleanOutcomeDataWriter";
+		
+		} else if( dataWriterClassName.equals("Mallet") ) {
+
+			this.dataWriterClassName = "org.cleartk.classifier.mallet.MalletBooleanOutcomeDataWriter";
+		
 		} else {
 			
 			throw new Exception("dataWriterClassName must be 'LibSvm' or "
 					+ "'Mallet' or "
-					+ "'Maxent' or "
-					+ "'TkSvmLight' or "
-					+ "'TkSvmLight'");
+					+ "'LibLinear'");
 			
 		}
-		
-		this.annotatorClass = (Class<? extends AnalysisComponent>) 
-				Class.forName("edu.isi.bmkeg.skm.triage.cleartk.annotators." + annotatorClassName);
 		
 		this.nFolds = nFolds;
 	
@@ -175,9 +190,14 @@ public class CrossValEval_Multiway extends
 		// Create and run the document classification training pipeline
 		AggregateBuilder builder = new AggregateBuilder();
 
+		//
 		// NLP pre-processing components
-		builder.add(SentenceAnnotator.getDescription());
-		builder.add(TokenAnnotator.getDescription());
+		//
+		//builder.add(SentenceAnnotator.getDescription());
+		builder.add(AnalysisEngineFactory.createPrimitiveDescription(
+				TokenAnnotator.class,
+				TokenAnnotator.PARAM_WINDOW_TYPE_NAME, "org.apache.uima.jcas.tcas.DocumentAnnotation"));
+		
 		builder.add(DefaultSnowballStemmer.getDescription("English"));
 		builder.add(AnalysisEngineFactory
 				.createPrimitiveDescription(GoldDocumentCategoryAnnotator.class));
@@ -293,8 +313,6 @@ public class CrossValEval_Multiway extends
 					TfIdf_Annotator.class,
 					TfIdf_Annotator.PARAM_UNI_TF_IDF_URI, 
 					TfIdf_Annotator.createTokenTfIdfDataURI(directory, "unigram"),
-					//MGI_FeatureEngineering_Annotator.PARAM_BI_TF_IDF_URI, 
-					//MGI_FeatureEngineering_Annotator.createTokenTfIdfDataURI(directory, "bigram"),
 					CleartkAnnotator.PARAM_IS_TRAINING, false,
 					GenericJarClassifierFactory.PARAM_CLASSIFIER_JAR_PATH,
 					classifierJarPath));
