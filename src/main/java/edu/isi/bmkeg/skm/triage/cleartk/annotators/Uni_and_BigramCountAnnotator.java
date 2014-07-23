@@ -33,18 +33,17 @@ import org.apache.uima.analysis_engine.AnalysisEngineProcessException;
 import org.apache.uima.jcas.JCas;
 import org.apache.uima.jcas.tcas.DocumentAnnotation;
 import org.apache.uima.resource.ResourceInitializationException;
-import org.cleartk.classifier.Feature;
-import org.cleartk.classifier.feature.extractor.CleartkExtractor;
-import org.cleartk.classifier.feature.extractor.CleartkExtractor.Count;
-import org.cleartk.classifier.feature.extractor.CleartkExtractor.Covered;
-import org.cleartk.classifier.feature.extractor.CleartkExtractor.Ngrams;
-import org.cleartk.classifier.feature.extractor.CoveredTextExtractor;
+import org.cleartk.ml.Feature;
+import org.cleartk.ml.feature.extractor.CleartkExtractor;
+import org.cleartk.ml.feature.extractor.CleartkExtractor.Count;
+import org.cleartk.ml.feature.extractor.CleartkExtractor.Covered;
+import org.cleartk.ml.feature.extractor.CleartkExtractor.Ngrams;
+import org.cleartk.ml.feature.extractor.CoveredTextExtractor;
 import org.cleartk.token.type.Token;
 
 
 /**
  * <br>
- * Copyright (c) 2012, Regents of the University of Colorado <br>
  * All rights reserved.
  * 
  * 

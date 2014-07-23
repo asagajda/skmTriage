@@ -8,7 +8,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.apache.commons.io.FileUtils;
-import org.cleartk.classifier.libsvm.LibSvmBooleanOutcomeDataWriter;
+import org.cleartk.ml.libsvm.LibSvmBooleanOutcomeDataWriter;
 import org.cleartk.eval.AnnotationStatistics;
 import org.kohsuke.args4j.Option;
 

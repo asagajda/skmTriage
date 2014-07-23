@@ -9,14 +9,13 @@ import org.apache.uima.collection.CollectionReader;
 import org.apache.uima.jcas.JCas;
 import org.apache.uima.resource.metadata.TypeSystemDescription;
 import org.apache.uima.util.Progress;
-import org.cleartk.classifier.CleartkAnnotator;
-import org.cleartk.classifier.jar.DefaultDataWriterFactory;
-import org.cleartk.classifier.jar.DirectoryDataWriterFactory;
-import org.cleartk.classifier.jar.GenericJarClassifierFactory;
-import org.cleartk.classifier.jar.JarClassifierBuilder;
-import org.cleartk.classifier.libsvm.LibSvmBooleanOutcomeDataWriter;
-import org.cleartk.syntax.opennlp.SentenceAnnotator;
-import org.cleartk.token.stem.snowball.DefaultSnowballStemmer;
+import org.cleartk.ml.CleartkAnnotator;
+import org.cleartk.ml.jar.DefaultDataWriterFactory;
+import org.cleartk.ml.jar.DirectoryDataWriterFactory;
+import org.cleartk.ml.jar.GenericJarClassifierFactory;
+import org.cleartk.ml.jar.JarClassifierBuilder;
+import org.cleartk.opennlp.tools.SentenceAnnotator;
+import org.cleartk.snowball.DefaultSnowballStemmer;
 import org.cleartk.token.tokenizer.TokenAnnotator;
 import org.kohsuke.args4j.CmdLineParser;
 import org.kohsuke.args4j.Option;
@@ -79,7 +78,7 @@ public class TriageDocumentsClassifier {
 		TRAIN, CLASSIFY
 	}
 
-	public static String DATA_WRITER_NAME =  "org.cleartk.classifier.libsvm.LibSvmBooleanOutcomeDataWriter";
+	public static String DATA_WRITER_NAME =  "org.cleartk.ml.libsvm.LibSvmBooleanOutcomeDataWriter";
 	public static String[] TRAINING_ARGS = new String[] { "-t", "0" };
 
 	public String triageCorpus;

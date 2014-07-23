@@ -8,11 +8,11 @@ import java.util.Map;
 
 import org.apache.uima.jcas.JCas;
 import org.apache.uima.jcas.tcas.DocumentAnnotation;
-import org.cleartk.classifier.CleartkAnnotator;
-import org.cleartk.classifier.CleartkProcessingException;
-import org.cleartk.classifier.Feature;
-import org.cleartk.classifier.Instance;
-import org.cleartk.classifier.feature.transform.extractor.TfidfExtractor;
+import org.cleartk.ml.CleartkAnnotator;
+import org.cleartk.ml.CleartkProcessingException;
+import org.cleartk.ml.Feature;
+import org.cleartk.ml.Instance;
+import org.cleartk.ml.feature.transform.extractor.TfidfExtractor;
 import org.uimafit.util.JCasUtil;
 
 import edu.isi.bmkeg.skm.cleartk.type.CatorgorizedFtdText;

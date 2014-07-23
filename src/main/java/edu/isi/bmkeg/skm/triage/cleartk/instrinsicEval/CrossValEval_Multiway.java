@@ -25,7 +25,6 @@ package edu.isi.bmkeg.skm.triage.cleartk.instrinsicEval;
 
 import java.io.File;
 import java.net.URI;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
@@ -36,20 +35,20 @@ import org.apache.uima.analysis_engine.AnalysisEngine;
 import org.apache.uima.collection.CollectionReader;
 import org.apache.uima.jcas.JCas;
 import org.apache.uima.jcas.tcas.DocumentAnnotation;
-import org.cleartk.classifier.CleartkAnnotator;
-import org.cleartk.classifier.DataWriter;
-import org.cleartk.classifier.Instance;
-import org.cleartk.classifier.feature.transform.InstanceDataWriter;
-import org.cleartk.classifier.feature.transform.InstanceStream;
-import org.cleartk.classifier.feature.transform.extractor.TfidfExtractor;
-import org.cleartk.classifier.jar.DefaultDataWriterFactory;
-import org.cleartk.classifier.jar.DirectoryDataWriterFactory;
-import org.cleartk.classifier.jar.GenericJarClassifierFactory;
-import org.cleartk.classifier.jar.JarClassifierBuilder;
-import org.cleartk.classifier.libsvm.LibSvmBooleanOutcomeDataWriter;
 import org.cleartk.eval.AnnotationStatistics;
-import org.cleartk.syntax.opennlp.SentenceAnnotator;
-import org.cleartk.token.stem.snowball.DefaultSnowballStemmer;
+import org.cleartk.ml.CleartkAnnotator;
+import org.cleartk.ml.DataWriter;
+import org.cleartk.ml.Instance;
+import org.cleartk.ml.feature.transform.InstanceDataWriter;
+import org.cleartk.ml.feature.transform.InstanceStream;
+import org.cleartk.ml.feature.transform.extractor.TfidfExtractor;
+import org.cleartk.ml.jar.DefaultDataWriterFactory;
+import org.cleartk.ml.jar.DirectoryDataWriterFactory;
+import org.cleartk.ml.jar.GenericJarClassifierFactory;
+import org.cleartk.ml.jar.JarClassifierBuilder;
+import org.cleartk.ml.libsvm.LibSvmBooleanOutcomeDataWriter;
+import org.cleartk.opennlp.tools.SentenceAnnotator;
+import org.cleartk.snowball.DefaultSnowballStemmer;
 import org.cleartk.token.tokenizer.TokenAnnotator;
 import org.uimafit.component.ViewTextCopierAnnotator;
 import org.uimafit.factory.AggregateBuilder;
@@ -156,15 +155,15 @@ public class CrossValEval_Multiway extends
 		
 		if( dataWriterClassName.equals("LibSvm") ) {
 
-			this.dataWriterClassName = "org.cleartk.classifier.libsvm.LibSvmBooleanOutcomeDataWriter";
+			this.dataWriterClassName = "org.cleartk.ml.libsvm.LibSvmBooleanOutcomeDataWriter";
 		
 		} else if( dataWriterClassName.equals("LibLinear") ) {
 
-			this.dataWriterClassName = "org.cleartk.classifier.liblinear.LibLinearBooleanOutcomeDataWriter";
+			this.dataWriterClassName = "org.cleartk.ml.liblinear.LibLinearBooleanOutcomeDataWriter";
 		
 		} else if( dataWriterClassName.equals("Mallet") ) {
 
-			this.dataWriterClassName = "org.cleartk.classifier.mallet.MalletBooleanOutcomeDataWriter";
+			this.dataWriterClassName = "org.cleartk.ml.mallet.MalletBooleanOutcomeDataWriter";
 		
 		} else {
 			

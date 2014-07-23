@@ -3,7 +3,7 @@ package edu.isi.bmkeg.skm.triage.uima.cpe;
 import java.io.File;
 import java.net.URL;
 
-import org.cleartk.classifier.libsvm.LibSvmBooleanOutcomeDataWriter;
+import org.cleartk.ml.libsvm.LibSvmBooleanOutcomeDataWriter;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;

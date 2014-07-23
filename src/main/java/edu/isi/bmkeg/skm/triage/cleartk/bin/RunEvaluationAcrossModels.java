@@ -1,7 +1,6 @@
 package edu.isi.bmkeg.skm.triage.cleartk.bin;
 
 import java.io.File;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -9,12 +8,8 @@ import java.util.List;
 import java.util.Map;
 
 import org.apache.commons.io.FileUtils;
-import org.cleartk.classifier.liblinear.LibLinearBooleanOutcomeDataWriter;
-import org.cleartk.classifier.libsvm.LibSvmBooleanOutcomeDataWriter;
-import org.cleartk.classifier.opennlp.MaxentBooleanOutcomeDataWriter;
-import org.cleartk.classifier.svmlight.SvmLightBooleanOutcomeDataWriter;
-import org.cleartk.classifier.tksvmlight.TkSvmLightBooleanOutcomeDataWriter;
 import org.cleartk.eval.AnnotationStatistics;
+import org.cleartk.ml.libsvm.LibSvmBooleanOutcomeDataWriter;
 import org.kohsuke.args4j.Option;
 
 import edu.isi.bmkeg.skm.triage.cleartk.instrinsicEval.CrossValEval_BigramCount;

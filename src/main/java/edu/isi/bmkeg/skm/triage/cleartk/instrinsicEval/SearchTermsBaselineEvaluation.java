@@ -11,7 +11,7 @@ import org.apache.uima.cas.CAS;
 import org.apache.uima.collection.CollectionReader;
 import org.apache.uima.jcas.JCas;
 import org.cleartk.eval.AnnotationStatistics;
-import org.cleartk.syntax.opennlp.SentenceAnnotator;
+import org.cleartk.opennlp.tools.SentenceAnnotator;
 import org.cleartk.token.tokenizer.TokenAnnotator;
 import org.cleartk.token.type.Token;
 import org.uimafit.component.ViewTextCopierAnnotator;

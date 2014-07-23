@@ -26,15 +26,15 @@ package edu.isi.bmkeg.skm.triage.cleartk.utils;
 import java.util.Collections;
 import java.util.List;
 
-import org.cleartk.classifier.Feature;
-import org.cleartk.classifier.feature.function.FeatureFunction;
+import org.cleartk.ml.Feature;
+import org.cleartk.ml.feature.function.FeatureFunction;
 
 /**
  * <br>
  * Copyright (c) 2007-2012, Regents of the University of Colorado <br>
  * All rights reserved.
  * 
- * Derived from ClearTk's org.cleartk.classifier.feature.function.LowerCaseFeatureFunction
+ * Derived from ClearTk's org.cleartk.ml.feature.function.LowerCaseFeatureFunction
  * Here we identify whether the token is followed by a genotyping allele: '+/-' or '(+/-)'
  * 
  * @author Philip Ogren

@@ -32,15 +32,15 @@ import org.apache.log4j.Logger;
 import org.apache.uima.analysis_engine.AnalysisEngine;
 import org.apache.uima.collection.CollectionReader;
 import org.apache.uima.jcas.JCas;
-import org.cleartk.classifier.CleartkAnnotator;
-import org.cleartk.classifier.jar.DefaultDataWriterFactory;
-import org.cleartk.classifier.jar.DirectoryDataWriterFactory;
-import org.cleartk.classifier.jar.GenericJarClassifierFactory;
-import org.cleartk.classifier.jar.JarClassifierBuilder;
-import org.cleartk.classifier.libsvm.LibSvmBooleanOutcomeDataWriter;
 import org.cleartk.eval.AnnotationStatistics;
-import org.cleartk.syntax.opennlp.SentenceAnnotator;
-import org.cleartk.token.stem.snowball.DefaultSnowballStemmer;
+import org.cleartk.ml.CleartkAnnotator;
+import org.cleartk.ml.jar.DefaultDataWriterFactory;
+import org.cleartk.ml.jar.DirectoryDataWriterFactory;
+import org.cleartk.ml.jar.GenericJarClassifierFactory;
+import org.cleartk.ml.jar.JarClassifierBuilder;
+import org.cleartk.ml.libsvm.LibSvmBooleanOutcomeDataWriter;
+import org.cleartk.opennlp.tools.SentenceAnnotator;
+import org.cleartk.snowball.DefaultSnowballStemmer;
 import org.cleartk.token.tokenizer.TokenAnnotator;
 import org.uimafit.component.ViewTextCopierAnnotator;
 import org.uimafit.factory.AggregateBuilder;
@@ -137,7 +137,7 @@ public class CrossValEval_BigramCount extends CrossValidationEvaluation {
 				.createPrimitiveDescription(GoldDocumentCategoryAnnotator.class));
 		
 		// Simple bigram count annotator
-		// org.cleartk.classifier.libsvm.LibSvmBooleanOutcomeDataWriter
+		// org.cleartk.ml.libsvm.LibSvmBooleanOutcomeDataWriter
 	    builder.add(AnalysisEngineFactory.createPrimitiveDescription(
 	    		BigramCountAnnotator.class,
 	    		CleartkAnnotator.PARAM_IS_TRAINING, true,

@@ -4,7 +4,7 @@ import java.io.File;
 
 import org.apache.uima.collection.CollectionReader;
 import org.apache.uima.resource.metadata.TypeSystemDescription;
-import org.cleartk.syntax.opennlp.SentenceAnnotator;
+import org.cleartk.opennlp.tools.SentenceAnnotator;
 import org.cleartk.token.tokenizer.TokenAnnotator;
 import org.kohsuke.args4j.Option;
 import org.uimafit.factory.AggregateBuilder;
