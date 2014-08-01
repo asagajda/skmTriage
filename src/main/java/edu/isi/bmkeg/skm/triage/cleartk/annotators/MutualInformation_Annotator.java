@@ -39,18 +39,13 @@ import org.cleartk.ml.feature.extractor.CleartkExtractor;
 import org.cleartk.ml.feature.extractor.CleartkExtractor.Focus;
 import org.cleartk.ml.feature.extractor.CleartkExtractor.Ngram;
 import org.cleartk.ml.feature.extractor.CleartkExtractor.Preceding;
-import org.cleartk.ml.feature.extractor.CombinedExtractor1;
 import org.cleartk.ml.feature.extractor.CoveredTextExtractor;
 import org.cleartk.ml.feature.extractor.FeatureExtractor1;
 import org.cleartk.ml.feature.function.FeatureFunctionExtractor;
 import org.cleartk.ml.feature.function.FeatureFunctionExtractor.BaseFeatures;
 import org.cleartk.ml.feature.function.LowerCaseFeatureFunction;
-import org.cleartk.ml.feature.selection.MutualInformationFeatureSelectionExtractor;
-import org.cleartk.ml.feature.transform.extractor.TfidfExtractor;
-import org.cleartk.ml.jar.DirectoryDataWriterFactory;
 import org.cleartk.token.type.Token;
 import org.uimafit.descriptor.ConfigurationParameter;
-import org.uimafit.factory.ConfigurationParameterFactory;
 
 
 /**
@@ -74,7 +69,7 @@ public class MutualInformation_Annotator extends CategorizedFtdAnnotator {
 	public static final String BI_MODE = "bi";
 	public static final String TRI_MODE = "tri";
 	public static final String ALL_MODE = "all";
-	
+		
 	public static final String PARAM_MODE = "miMode";
 	@ConfigurationParameter(
 			name = PARAM_MODE,
@@ -89,7 +84,7 @@ public class MutualInformation_Annotator extends CategorizedFtdAnnotator {
 			description = "set this this parameter to the URI for biigram MI scores")
 	private URI uniMiUri;
 	
-	private MutualInformationFeatureSelectionExtractor<Boolean, DocumentAnnotation> miExtractor1;
+	private MutualInformationFeatureSelectionExtractor_bugfix<Boolean, DocumentAnnotation> miExtractor1;
 	
 	public static final String PARAM_BI_MI_URI = "biMiUri";
 	@ConfigurationParameter(
@@ -98,7 +93,7 @@ public class MutualInformation_Annotator extends CategorizedFtdAnnotator {
 			description = "set this this parameter to the URI for triigram MI scores")
 	private URI biMiUri;
 	
-	private MutualInformationFeatureSelectionExtractor<Boolean, DocumentAnnotation> miExtractor2;
+	private MutualInformationFeatureSelectionExtractor_bugfix<Boolean, DocumentAnnotation> miExtractor2;
 			
 	public static final String PARAM_TRI_MI_URI = "triMiUri";
 	@ConfigurationParameter(
@@ -107,7 +102,7 @@ public class MutualInformation_Annotator extends CategorizedFtdAnnotator {
 			description = "provides a URI where the trigram MI scores will be written")
 	private URI triMiUri;
 	
-	private MutualInformationFeatureSelectionExtractor<Boolean, DocumentAnnotation> miExtractor3;
+	private MutualInformationFeatureSelectionExtractor_bugfix<Boolean, DocumentAnnotation> miExtractor3;
 	
 	public static URI createDataURI(File outputDirectoryName, String code) {
 		File f = new File(outputDirectoryName, code + "_mi_extractor.dat");
@@ -129,7 +124,7 @@ public class MutualInformation_Annotator extends CategorizedFtdAnnotator {
 					        lowerCaseExtractor1,
 					        new CleartkExtractor.Count(new CleartkExtractor.Covered()));
 
-		this.miExtractor1 = new MutualInformationFeatureSelectionExtractor<Boolean, DocumentAnnotation>(
+		this.miExtractor1 = new MutualInformationFeatureSelectionExtractor_bugfix<Boolean, DocumentAnnotation>(
 				PARAM_UNI_MI_URI, 
 				uniExtractor);
 		
@@ -154,7 +149,7 @@ public class MutualInformation_Annotator extends CategorizedFtdAnnotator {
 						   biExtractor1,
 					        new CleartkExtractor.Count(new CleartkExtractor.Covered()));
 		
-		this.miExtractor2 = new MutualInformationFeatureSelectionExtractor<Boolean, DocumentAnnotation>(
+		this.miExtractor2 = new MutualInformationFeatureSelectionExtractor_bugfix<Boolean, DocumentAnnotation>(
 				PARAM_BI_MI_URI, 
 				biExtractor2);
 
@@ -179,7 +174,7 @@ public class MutualInformation_Annotator extends CategorizedFtdAnnotator {
 						   triExtractor1,
 					        new CleartkExtractor.Count(new CleartkExtractor.Covered()));
 		
-		this.miExtractor3 = new MutualInformationFeatureSelectionExtractor<Boolean, DocumentAnnotation>(
+		this.miExtractor3 = new MutualInformationFeatureSelectionExtractor_bugfix<Boolean, DocumentAnnotation>(
 				PARAM_TRI_MI_URI, 
 				triExtractor2);
 

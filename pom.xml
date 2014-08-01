@@ -242,6 +242,11 @@
 
 		<dependency>
 			<groupId>org.cleartk</groupId>
+			<artifactId>cleartk-ml</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>org.cleartk</groupId>
 			<artifactId>cleartk-ml-opennlp-maxent</artifactId>
 		</dependency>
 
@@ -289,27 +294,11 @@
 			<groupId>org.cleartk</groupId>
 			<artifactId>cleartk-token</artifactId>
 		</dependency> 
-	 					
-	 	<dependency>
-			<groupId>org.cleartk</groupId>
-			<artifactId>cleartk-summarization</artifactId>
-		</dependency> 
-	 					
+	 						 					
 		<dependency>
 			<groupId>org.cleartk</groupId>
 			<artifactId>cleartk-ml-mallet</artifactId>
 		</dependency>
-
-		<!-- <dependency>
-			<groupId>edu.isi.bmkeg</groupId>
-			<artifactId>skmCore</artifactId>
-			<exclusions>
-				<exclusion>
-					<artifactId>cleartk-ml-mallet</artifactId>
-					<groupId>org.cleartk</groupId>
-				</exclusion>
-			</exclusions>
-		</dependency> -->
 
 		<dependency>
 			<groupId>org.springframework</groupId>

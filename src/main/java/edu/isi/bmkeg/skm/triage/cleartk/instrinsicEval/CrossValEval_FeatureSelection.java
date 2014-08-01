@@ -38,8 +38,6 @@ import org.cleartk.eval.AnnotationStatistics;
 import org.cleartk.ml.CleartkAnnotator;
 import org.cleartk.ml.DataWriter;
 import org.cleartk.ml.Instance;
-import org.cleartk.ml.feature.selection.MutualInformationFeatureSelectionExtractor;
-import org.cleartk.ml.feature.selection.MutualInformationFeatureSelectionExtractor.CombineScoreMethod;
 import org.cleartk.ml.feature.transform.InstanceDataWriter;
 import org.cleartk.ml.feature.transform.InstanceStream;
 import org.cleartk.ml.jar.DefaultDataWriterFactory;
@@ -53,12 +51,15 @@ import org.uimafit.component.ViewTextCopierAnnotator;
 import org.uimafit.factory.AggregateBuilder;
 import org.uimafit.factory.AnalysisEngineFactory;
 import org.uimafit.pipeline.JCasIterable;
+import org.uimafit.pipeline.SimplePipeline;
 import org.uimafit.util.JCasUtil;
 
 import com.google.common.base.Function;
 
 import edu.isi.bmkeg.skm.cleartk.type.CatorgorizedFtdText;
 import edu.isi.bmkeg.skm.triage.cleartk.annotators.GoldDocumentCategoryAnnotator;
+import edu.isi.bmkeg.skm.triage.cleartk.annotators.MutualInformationFeatureSelectionExtractor_bugfix;
+import edu.isi.bmkeg.skm.triage.cleartk.annotators.MutualInformationFeatureSelectionExtractor_bugfix.CombineScoreMethod;
 import edu.isi.bmkeg.skm.triage.cleartk.annotators.MutualInformation_Annotator;
 import edu.isi.bmkeg.skm.triage.cleartk.annotators.TfIdf_Annotator;
 
@@ -190,8 +191,7 @@ public class CrossValEval_FeatureSelection extends
 				DirectoryDataWriterFactory.PARAM_OUTPUT_DIRECTORY, outputDirectory));
 
 		// run the pipeline
-		//SimplePipeline.runPipeline(collectionReader,
-		//		builder.createAggregateDescription());
+		SimplePipeline.runPipeline(collectionReader, builder.createAggregateDescription());
 		
 		/**
 		 * Step 2: Transform features and write training data
@@ -203,7 +203,7 @@ public class CrossValEval_FeatureSelection extends
 		logger.info("2. Calculate mutual information orderings over features");
 		// Load the serialized instance data
 		Iterable<Instance<Boolean>> instances = InstanceStream.loadFromDirectory(outputDirectory);
-
+		
 		// Collect MI stats for computing MI values on extracted tokens
 		if( mode.equals(MutualInformation_Annotator.UNI_MODE) || 
 				mode.equals(MutualInformation_Annotator.ALL_MODE) ) {
@@ -211,13 +211,14 @@ public class CrossValEval_FeatureSelection extends
 			URI unigramMIDataURI = MutualInformation_Annotator.createDataURI(
 					outputDirectory, 
 					MutualInformation_Annotator.PARAM_UNI_MI_URI);
-			MutualInformationFeatureSelectionExtractor<Boolean, DocumentAnnotation> extractor1 = 
-					new MutualInformationFeatureSelectionExtractor<Boolean, DocumentAnnotation>(
+			MutualInformationFeatureSelectionExtractor_bugfix<Boolean, DocumentAnnotation> extractor1 = 
+					new MutualInformationFeatureSelectionExtractor_bugfix<Boolean, DocumentAnnotation>(
 							MutualInformation_Annotator.PARAM_UNI_MI_URI, 
 							null, 
 							CombineScoreMethod.AVERAGE,
 							1.0,
 							100);
+			
 			extractor1.train(instances);
 			extractor1.save(unigramMIDataURI);
 
@@ -227,11 +228,12 @@ public class CrossValEval_FeatureSelection extends
 			URI bigramMIDataURI = MutualInformation_Annotator.createDataURI(
 					outputDirectory, 
 					MutualInformation_Annotator.PARAM_BI_MI_URI);
-			MutualInformationFeatureSelectionExtractor<Boolean, DocumentAnnotation> extractor2 = 
-					new MutualInformationFeatureSelectionExtractor<Boolean, DocumentAnnotation>(
+			MutualInformationFeatureSelectionExtractor_bugfix<Boolean, DocumentAnnotation> extractor2 = 
+					new MutualInformationFeatureSelectionExtractor_bugfix<Boolean, DocumentAnnotation>(
 							MutualInformation_Annotator.PARAM_BI_MI_URI, 
 							null, 
 							100);
+			
 			extractor2.train(instances);
 			extractor2.save(bigramMIDataURI);
 
@@ -241,11 +243,12 @@ public class CrossValEval_FeatureSelection extends
 			URI trigramMIDataURI = MutualInformation_Annotator.createDataURI(
 					outputDirectory, 
 					MutualInformation_Annotator.PARAM_TRI_MI_URI);
-			MutualInformationFeatureSelectionExtractor<Boolean, DocumentAnnotation> extractor3 = 
-					new MutualInformationFeatureSelectionExtractor<Boolean, DocumentAnnotation>(
+			MutualInformationFeatureSelectionExtractor_bugfix<Boolean, DocumentAnnotation> extractor3 = 
+					new MutualInformationFeatureSelectionExtractor_bugfix<Boolean, DocumentAnnotation>(
 							MutualInformation_Annotator.PARAM_TRI_MI_URI, 
 							null, 
 							100);
+			
 			extractor3.train(instances);
 			extractor3.save(trigramMIDataURI);
 
