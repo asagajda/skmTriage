@@ -263,7 +263,6 @@ public class ImportPmcIdsFromPmids {
 				try {
 					
 					doc = triageEngine.blockifyFile(pdf);
-					ftd.setPdfLoaded(pdf.exists());
 				
 				} catch(Exception e) {
 
@@ -286,7 +285,6 @@ public class ImportPmcIdsFromPmids {
 				}
 				
 				File swfFile = new File(options.workingDirectory + stem + pmid + ".swf" );
-				ftd.setSwfLoaded(swfFile.exists());
 				
 				ftd.setChecksum(checksum);
 				ftd.setName(stem + pmid + ".pdf");
@@ -306,12 +304,6 @@ public class ImportPmcIdsFromPmids {
 					
 				}
 				
-				ftd.setXmlFile( stem + pmid + "_lapdf.xml");				
-				ftd.setXmlLoaded(xmlFile.exists());
-				
-				ftd.setPmcXmlFile(stem + pmid + "_pmc.xml");
-				ftd.setPmcLoaded(pmcXml.exists());
-
 				ArticleCitation ac = triageEngine.getExtDigLibDao().getCoreDao().findById(
 						vpdmfId, new ArticleCitation(), "ArticleCitation");
 				ftd.setCitation(ac);

@@ -169,7 +169,7 @@ public class ExtendedTriageServiceImpl implements
 			JournalEpoch je = this.extDigLibDao.retriveJournalEpochForCitation(ac);
 			if( je != null && je.getRules() != null) {
 				FTDRuleSet rs = je.getRules();	
-				File ruleFile = new File(workDir.getPath() + "/" + rs.getFilePath());
+				File ruleFile = new File(workDir.getPath() + "/rules/" + rs.getFileName());
 				template.send("serverUpdates", "Classifying text blocks (" 
 					+ pdfFile.getName() + ")" );
 				te.classifyDocument(doc, te.getRuleFile());
@@ -177,7 +177,7 @@ public class ExtendedTriageServiceImpl implements
 			
 			template.send("serverUpdates", "Add PDF to article citation (" 
 					+ pdfFile.getName() + ")" );
-			this.extDigLibDao.addPdfToArticleCitation(doc, ac, pdfFile);
+			this.extDigLibDao.addFtdToArticleCitation(doc, ac, pdfFile);
 			
 			template.send("serverUpdates", "Assigning In / Out code codes to article (" 
 					+ pdfFile.getName() + ")" );
